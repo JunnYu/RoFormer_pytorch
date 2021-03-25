@@ -31,6 +31,10 @@ bash run.sh
 | pytorch-ReFormer(base)          | **95.08** |
 
 ## 参考
+https://github.com/pengming617/bert_classification
+
+https://github.com/bojone/bert4keras
+
 https://github.com/ZhuiyiTechnology/roformer 
 
 https://github.com/lonePatient/NeZha_Chinese_PyTorch 
