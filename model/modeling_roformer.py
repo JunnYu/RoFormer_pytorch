@@ -35,17 +35,15 @@ class SinusoidalEmbedding(nn.Module):
         self.output_dim = output_dim
 
     def forward(self, inputs):
-        input_shape = inputs.shape
-        batch_size, seq_len = input_shape[0], input_shape[1]
+        seq_len = inputs.shape[1]
         position_ids = torch.arange(0, seq_len, dtype=torch.float32)[None]
 
         indices = torch.arange(0, self.output_dim // 2, dtype=torch.float32)
         indices = torch.pow(10000.0, -2 * indices / self.output_dim)
         embeddings = torch.einsum('bn,d->bnd', position_ids, indices)
-        embeddings = torch.stack(
-            [torch.sin(embeddings),
-             torch.cos(embeddings)], axis=-1)
-        embeddings = torch.reshape(embeddings, (-1, seq_len, self.output_dim))
+        embeddings = torch.stack([embeddings.sin(), embeddings.cos()], dim=-1)
+        embeddings = torch.reshape(
+            embeddings, (-1, seq_len, self.output_dim)).to(inputs.device)
 
         return embeddings
 
@@ -220,22 +218,22 @@ class RoFormerSelfAttention(nn.Module):
         # rotary_positions_encoding
         #########################
         relations_keys_values = self.rotary_positions_encoding(
-            hidden_states)[:, None].to(hidden_states.device)
+            hidden_states)[:, None]
 
         cos_pos = torch.repeat_interleave(relations_keys_values[..., 1::2],
                                           2,
-                                          axis=-1)
+                                          dim=-1)
 
         sin_pos = torch.repeat_interleave(relations_keys_values[..., ::2],
                                           2,
-                                          axis=-1)
+                                          dim=-1)
         # query_layer b h l d
         qw2 = torch.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
-                          axis=-1).reshape_as(query_layer)
+                          dim=-1).reshape_as(query_layer)
 
         query_layer = query_layer * cos_pos + qw2 * sin_pos
         kw2 = torch.stack([-key_layer[..., 1::2], key_layer[..., ::2]],
-                          axis=-1).reshape_as(key_layer)
+                          dim=-1).reshape_as(key_layer)
         key_layer = key_layer * cos_pos + kw2 * sin_pos
         #########################
 

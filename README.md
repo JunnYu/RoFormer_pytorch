@@ -3,7 +3,7 @@
 - [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (提取码：xy9x)
 
 已经转化为PyTorch权重
-- [chinese_roformer_base.zip](https://pan.baidu.com/s/1dw3--OTHFaoA2QO4LwEggA) (提取码：e8oe)
+- [chinese_roformer_base.zip](https://pan.baidu.com/s/1P9Dcgq13Fs7O7yKyMLsXWw) (提取码：a79k)
 
 
 ## 手动权重转换
