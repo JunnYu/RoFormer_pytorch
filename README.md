@@ -17,9 +17,23 @@ max diff : tensor(7.6294e-06)
 ```bash
 bash run.sh
 ```
+###
+<p align="center"> dev acc</p>
+<p align="center">
+    <img src="figure/acc.jpg" width="80%" />
+</p>
+<p align="center">
+    <img src="figure/loss.jpg" width="100%" />
+</p>
+### 结果
+
+| model | chnsenti  |
+| --------------- | --------- |
+| tensorflow-NEZHA(base-wwm)      | 94.75     |
+| pytorch-NEZHA(base-wwm)         | 94.92     |
+| pytorch-ReFormer(base)          | **95.08** |
+
 ## 参考
-```python
 https://github.com/ZhuiyiTechnology/roformer
 https://github.com/lonePatient/NeZha_Chinese_PyTorch
 https://github.com/lonePatient/TorchBlocks
-```
