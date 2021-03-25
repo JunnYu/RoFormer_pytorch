@@ -22,7 +22,7 @@ max  difference : tensor(7.6294e-06)
 
 ## 中文情感分类(chnsenti)
 ```bash
-bash run.sh
+bash run_chnsenti.sh
 ```
 <p align="center">
     <img src="figure/loss.png" width="100%" />
