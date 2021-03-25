@@ -20,6 +20,7 @@ bash run.sh
 <p align="center">
     <img src="figure/loss.jpg" width="100%" />
 </p>
+
 ### 结果
 
 | model | chnsenti  |
