@@ -127,7 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-outputs/
 test.py
 win.bat
 **/pytorch_model.bin

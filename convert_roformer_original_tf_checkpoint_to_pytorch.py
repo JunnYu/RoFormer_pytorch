@@ -62,5 +62,5 @@ if __name__ == "__main__":
                                      args.roformer_config_file,
                                      args.pytorch_dump_path)
 '''
-python convert_roformer_original_tf_checkpoint_to_pytorch.py --tf_checkpoint_path=E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_model.ckpt --roformer_config_file=config.json --pytorch_dump_path=pytorch_model.bin
+python convert_roformer_original_tf_checkpoint_to_pytorch.py --tf_checkpoint_path=E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_model.ckpt --roformer_config_file=pretrained_models/chinese_roformer_base/config.json --pytorch_dump_path=pretrained_models/chinese_roformer_base/pytorch_model.bin
 '''
