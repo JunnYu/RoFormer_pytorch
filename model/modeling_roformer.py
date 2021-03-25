@@ -9,15 +9,15 @@ from .configuration_roformer import RoFormerConfig
 from transformers.file_utils import add_start_docstrings, add_start_docstrings_to_model_forward
 from transformers.modeling_utils import PreTrainedModel, prune_linear_layer
 from transformers.models.bert.modeling_bert import (
-    BertOutput,
-    BertPooler,
-    BertSelfOutput,
-    BertIntermediate,
-    BertOnlyMLMHead,
-    BertOnlyNSPHead,
-    BertPreTrainingHeads,
-    BERT_START_DOCSTRING,
-    BERT_INPUTS_DOCSTRING,
+    BertOutput as RoFormerOutput,
+    BertPooler as RoFormerPooler,
+    BertSelfOutput as RoFormerSelfOutput,
+    BertIntermediate as RoFormerIntermediate,
+    BertOnlyMLMHead as RoFormerOnlyMLMHead,
+    BertOnlyNSPHead as RoFormerOnlyNSPHead,
+    BertPreTrainingHeads as RoFormerPreTrainingHeads,
+    BERT_START_DOCSTRING as ROFORMER_START_DOCSTRING,
+    BERT_INPUTS_DOCSTRING as ROFORMER_INPUTS_DOCSTRING,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ def load_tf_weights_in_roformer(model, config, tf_checkpoint_path):
     for name, shape in init_vars:
         logger.info("Loading TF weight {} with shape {}".format(name, shape))
         array = tf.train.load_variable(tf_path, name)
-        names.append(name)
+        names.append(name.replace("bert", "roformer"))
         arrays.append(array)
 
     for name, array in zip(names, arrays):
@@ -247,7 +247,7 @@ class RoFormerSelfAttention(nn.Module):
             self.attention_head_size)
 
         if attention_mask is not None:
-            # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
+            # Apply the attention mask is (precomputed for all layers in RoFormerModel forward() function)
             attention_scores = attention_scores + attention_mask
 
         # Normalize the attention scores to probabilities.
@@ -278,7 +278,7 @@ class RoFormerAttention(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.self = RoFormerSelfAttention(config)
-        self.output = BertSelfOutput(config)
+        self.output = RoFormerSelfOutput(config)
         self.pruned_heads = set()
 
     def prune_heads(self, heads):
@@ -329,8 +329,8 @@ class RoFormerLayer(nn.Module):
         self.is_decoder = config.is_decoder
         if self.is_decoder:
             self.crossattention = RoFormerAttention(config)
-        self.intermediate = BertIntermediate(config)
-        self.output = BertOutput(config)
+        self.intermediate = RoFormerIntermediate(config)
+        self.output = RoFormerOutput(config)
 
     def forward(
         self,
@@ -406,7 +406,7 @@ class RoFormerPreTrainedModel(PreTrainedModel):
     config_class = RoFormerConfig
     pretrained_model_archive_map = ROFORMER_PRETRAINED_MODEL_ARCHIVE_MAP
     load_tf_weights = load_tf_weights_in_roformer
-    base_model_prefix = "bert"
+    base_model_prefix = "roformer"
 
     def _init_weights(self, module):
         """ Initialize the weights """
@@ -423,8 +423,8 @@ class RoFormerPreTrainedModel(PreTrainedModel):
 
 
 @add_start_docstrings(
-    "The bare Bert Model transformer outputting raw hidden-states without any specific head on top.",
-    BERT_START_DOCSTRING,
+    "The bare RoFormer Model transformer outputting raw hidden-states without any specific head on top.",
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerModel(RoFormerPreTrainedModel):
     """
@@ -446,7 +446,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
         self.config = config
         self.embeddings = RoFormerEmbeddings(config)
         self.encoder = RoFormerEncoder(config)
-        self.pooler = BertPooler(config)
+        self.pooler = RoFormerPooler(config)
         self.init_weights()
 
     def get_input_embeddings(self):
@@ -464,7 +464,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
             self.encoder.layer[layer].attention.prune_heads(heads)
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -477,7 +477,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
     ):
         r"""
     Return:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         last_hidden_state (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length, hidden_size)`):
             Sequence of hidden-states at the output of the last layer of the model.
         pooler_output (:obj:`torch.FloatTensor`: of shape :obj:`(batch_size, hidden_size)`):
@@ -503,13 +503,13 @@ class RoFormerModel(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertModel, BertTokenizer
+        from transformers import RoFormerModel, RoFormerTokenizer
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertModel.from_pretrained('bert-base-uncased')
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerModel.from_pretrained('chinese_roformer_base')
 
-        input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+        input_ids = torch.tensor(tokenizer.encode("今天天气非常好", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
         outputs = model(input_ids)
 
         last_hidden_states = outputs[0]  # The last hidden-state is the first element of the output tuple
@@ -587,22 +587,22 @@ class RoFormerModel(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model with two heads on top as done during the pre-training: a `masked language modeling` head and
+    """RoFormer Model with two heads on top as done during the pre-training: a `masked language modeling` head and
     a `next sentence prediction (classification)` head. """,
-    BERT_START_DOCSTRING,
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerForPreTraining(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
-        self.bert = RoFormerModel(config)
-        self.cls = BertPreTrainingHeads(config)
+        self.roformer = RoFormerModel(config)
+        self.cls = RoFormerPreTrainingHeads(config)
         self.init_weights()
 
     def get_output_embeddings(self):
         return self.cls.predictions.decoder
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -626,7 +626,7 @@ class RoFormerForPreTraining(RoFormerPreTrainedModel):
             ``1`` indicates sequence B is a random sequence.
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         loss (`optional`, returned when ``masked_lm_labels`` is provided) ``torch.FloatTensor`` of shape ``(1,)``:
             Total loss as the sum of the masked language modeling loss and the next sequence prediction (classification) loss.
         prediction_scores (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length, config.vocab_size)`)
@@ -649,20 +649,20 @@ class RoFormerForPreTraining(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertTokenizer, BertForPreTraining
+        from transformers import RoFormerTokenizer, RoFormerForPreTraining
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForPreTraining.from_pretrained('bert-base-uncased')
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerForPreTraining.from_pretrained('chinese_roformer_base')
 
-        input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+        input_ids = torch.tensor(tokenizer.encode("今天天气非常好", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
         outputs = model(input_ids)
 
         prediction_scores, seq_relationship_scores = outputs[:2]
 
         """
 
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -693,20 +693,20 @@ class RoFormerForPreTraining(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model with a `language modeling` head on top. """,
-    BERT_START_DOCSTRING)
+    """RoFormer Model with a `language modeling` head on top. """,
+    ROFORMER_START_DOCSTRING)
 class RoFormerForMaskedLM(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
-        self.bert = RoFormerModel(config)
-        self.cls = BertOnlyMLMHead(config)
+        self.roformer = RoFormerModel(config)
+        self.cls = RoFormerOnlyMLMHead(config)
         self.init_weights()
 
     def get_output_embeddings(self):
         return self.cls.predictions.decoder
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -731,7 +731,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
             in ``[0, ..., config.vocab_size]``
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         masked_lm_loss (`optional`, returned when ``masked_lm_labels`` is provided) ``torch.FloatTensor`` of shape ``(1,)``:
             Masked language modeling loss.
         ltr_lm_loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`lm_labels` is provided):
@@ -752,19 +752,19 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
 
         Examples::
 
-            from transformers import BertTokenizer, BertForMaskedLM
+            from transformers import RoFormerTokenizer, RoFormerForMaskedLM
             import torch
 
-            tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-            model = BertForMaskedLM.from_pretrained('bert-base-uncased')
+            tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+            model = RoFormerForMaskedLM.from_pretrained('chinese_roformer_base')
 
-            input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+            input_ids = torch.tensor(tokenizer.encode("今天天气非常好", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
             outputs = model(input_ids, masked_lm_labels=input_ids)
 
             loss, prediction_scores = outputs[:2]
 
         """
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -779,7 +779,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
         outputs = (prediction_scores, ) + outputs[
             2:]  # Add hidden states and attention if they are here
 
-        # Although this may seem awkward, BertForMaskedLM supports two scenarios:
+        # Although this may seem awkward, RoFormerForMaskedLM supports two scenarios:
         # 1. If a tensor that contains the indices of masked labels is provided,
         #    the cross-entropy is the MLM cross-entropy that measures the likelihood
         #    of predictions for masked words.
@@ -824,18 +824,18 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model with a `next sentence prediction (classification)` head on top. """,
-    BERT_START_DOCSTRING,
+    """RoFormer Model with a `next sentence prediction (classification)` head on top. """,
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerForNextSentencePrediction(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
-        self.bert = RoFormerModel(config)
-        self.cls = BertOnlyNSPHead(config)
+        self.roformer = RoFormerModel(config)
+        self.cls = RoFormerOnlyNSPHead(config)
         self.init_weights()
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -853,7 +853,7 @@ class RoFormerForNextSentencePrediction(RoFormerPreTrainedModel):
             ``1`` indicates sequence B is a random sequence.
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`next_sentence_label` is provided):
             Next sequence prediction (classification) loss.
         seq_relationship_scores (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, 2)`):
@@ -872,20 +872,20 @@ class RoFormerForNextSentencePrediction(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertTokenizer, BertForNextSentencePrediction
+        from transformers import RoFormerTokenizer, RoFormerForNextSentencePrediction
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerForNextSentencePrediction.from_pretrained('chinese_roformer_base')
 
-        input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+        input_ids = torch.tensor(tokenizer.encode("今天天气非常好", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
         outputs = model(input_ids)
 
         seq_relationship_scores = outputs[0]
 
         """
 
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -907,21 +907,21 @@ class RoFormerForNextSentencePrediction(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model transformer with a sequence classification/regression head on top (a linear layer on top of
+    """RoFormer Model transformer with a sequence classification/regression head on top (a linear layer on top of
     the pooled output) e.g. for GLUE tasks. """,
-    BERT_START_DOCSTRING,
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerForSequenceClassification(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.bert = RoFormerModel(config)
+        self.roformer = RoFormerModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
         self.init_weights()
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -939,7 +939,7 @@ class RoFormerForSequenceClassification(RoFormerPreTrainedModel):
             If :obj:`config.num_labels > 1` a classification loss is computed (Cross-Entropy).
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`label` is provided):
             Classification (or regression if config.num_labels==1) loss.
         logits (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, config.num_labels)`):
@@ -958,13 +958,13 @@ class RoFormerForSequenceClassification(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertTokenizer, BertForSequenceClassification
+        from transformers import RoFormerTokenizer, RoFormerForSequenceClassification
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerForSequenceClassification.from_pretrained('chinese_roformer_base')
 
-        input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+        input_ids = torch.tensor(tokenizer.encode("今天天气非常好", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
         labels = torch.tensor([1]).unsqueeze(0)  # Batch size 1
         outputs = model(input_ids, labels=labels)
 
@@ -972,7 +972,7 @@ class RoFormerForSequenceClassification(RoFormerPreTrainedModel):
 
         """
 
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -1003,20 +1003,20 @@ class RoFormerForSequenceClassification(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model with a multiple choice classification head on top (a linear layer on top of
+    """RoFormer Model with a multiple choice classification head on top (a linear layer on top of
     the pooled output and a softmax) e.g. for RocStories/SWAG tasks. """,
-    BERT_START_DOCSTRING,
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerForMultipleChoice(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
-        self.bert = RoFormerModel(config)
+        self.roformer = RoFormerModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, 1)
         self.init_weights()
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -1033,7 +1033,7 @@ class RoFormerForMultipleChoice(RoFormerPreTrainedModel):
             of the input tensors. (see `input_ids` above)
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         loss (:obj:`torch.FloatTensor` of shape `(1,)`, `optional`, returned when :obj:`labels` is provided):
             Classification loss.
         classification_scores (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, num_choices)`):
@@ -1054,12 +1054,12 @@ class RoFormerForMultipleChoice(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertTokenizer, BertForMultipleChoice
+        from transformers import RoFormerTokenizer, RoFormerForMultipleChoice
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForMultipleChoice.from_pretrained('bert-base-uncased')
-        choices = ["Hello, my dog is cute", "Hello, my cat is amazing"]
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerForMultipleChoice.from_pretrained('chinese_roformer_base')
+        choices = ["今天天气非常好", "我想出去玩"]
 
         input_ids = torch.tensor([tokenizer.encode(s, add_special_tokens=True) for s in choices]).unsqueeze(0)  # Batch size 1, 2 choices
         labels = torch.tensor(1).unsqueeze(0)  # Batch size 1
@@ -1078,7 +1078,7 @@ class RoFormerForMultipleChoice(RoFormerPreTrainedModel):
             -1,
             token_type_ids.size(-1)) if token_type_ids is not None else None
 
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -1104,21 +1104,21 @@ class RoFormerForMultipleChoice(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model with a token classification head on top (a linear layer on top of
+    """RoFormer Model with a token classification head on top (a linear layer on top of
     the hidden-states output) e.g. for Named-Entity-Recognition (NER) tasks. """,
-    BERT_START_DOCSTRING,
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerForTokenClassification(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.bert = RoFormerModel(config)
+        self.roformer = RoFormerModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
         self.init_weights()
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -1134,7 +1134,7 @@ class RoFormerForTokenClassification(RoFormerPreTrainedModel):
             Indices should be in ``[0, ..., config.num_labels - 1]``.
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when ``labels`` is provided) :
             Classification loss.
         scores (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length, config.num_labels)`)
@@ -1153,13 +1153,13 @@ class RoFormerForTokenClassification(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertTokenizer, BertForTokenClassification
+        from transformers import RoFormerTokenizer, RoFormerForTokenClassification
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForTokenClassification.from_pretrained('bert-base-uncased')
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerForTokenClassification.from_pretrained('chinese_roformer_base')
 
-        input_ids = torch.tensor(tokenizer.encode("Hello, my dog is cute", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
+        input_ids = torch.tensor(tokenizer.encode("今天天气非常好", add_special_tokens=True)).unsqueeze(0)  # Batch size 1
         labels = torch.tensor([1] * input_ids.size(1)).unsqueeze(0)  # Batch size 1
         outputs = model(input_ids, labels=labels)
 
@@ -1167,7 +1167,7 @@ class RoFormerForTokenClassification(RoFormerPreTrainedModel):
 
         """
 
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -1201,20 +1201,20 @@ class RoFormerForTokenClassification(RoFormerPreTrainedModel):
 
 
 @add_start_docstrings(
-    """Bert Model with a span classification head on top for extractive question-answering tasks like SQuAD (a linear
+    """RoFormer Model with a span classification head on top for extractive question-answering tasks like SQuAD (a linear
     layers on top of the hidden-states output to compute `span start logits` and `span end logits`). """,
-    BERT_START_DOCSTRING,
+    ROFORMER_START_DOCSTRING,
 )
 class RoFormerForQuestionAnswering(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.bert = RoFormerModel(config)
+        self.roformer = RoFormerModel(config)
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
         self.init_weights()
 
     @add_start_docstrings_to_model_forward(
-        BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
         input_ids=None,
@@ -1236,7 +1236,7 @@ class RoFormerForQuestionAnswering(RoFormerPreTrainedModel):
             Position outside of the sequence are not taken into account for computing the loss.
 
     Returns:
-        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.BertConfig`) and inputs:
+        :obj:`tuple(torch.FloatTensor)` comprising various elements depending on the configuration (:class:`~transformers.RoFormerConfig`) and inputs:
         loss (:obj:`torch.FloatTensor` of shape :obj:`(1,)`, `optional`, returned when :obj:`labels` is provided):
             Total span extraction loss is the sum of a Cross-Entropy for the start and end positions.
         start_scores (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length,)`):
@@ -1257,13 +1257,13 @@ class RoFormerForQuestionAnswering(RoFormerPreTrainedModel):
 
     Examples::
 
-        from transformers import BertTokenizer, BertForQuestionAnswering
+        from transformers import RoFormerTokenizer, RoFormerForQuestionAnswering
         import torch
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        model = BertForQuestionAnswering.from_pretrained('bert-large-uncased-whole-word-masking-finetuned-squad')
+        tokenizer = RoFormerTokenizer.from_pretrained('chinese_roformer_base')
+        model = RoFormerForQuestionAnswering.from_pretrained('chinese_roformer_base')
 
-        question, text = "Who was Jim Henson?", "Jim Henson was a nice puppet"
+        question, text = "谁是詹姆斯?", "詹姆斯是一个出色的篮球运动员！"
         encoding = tokenizer.encode_plus(question, text)
         input_ids, token_type_ids = encoding["input_ids"], encoding["token_type_ids"]
         start_scores, end_scores = model(torch.tensor([input_ids]), token_type_ids=torch.tensor([token_type_ids]))
@@ -1275,7 +1275,7 @@ class RoFormerForQuestionAnswering(RoFormerPreTrainedModel):
 
         """
 
-        outputs = self.bert(
+        outputs = self.roformer(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
