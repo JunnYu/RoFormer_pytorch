@@ -28,7 +28,7 @@ bash run.sh
 | --------------- | --------- |
 | tensorflow-NEZHA(base-wwm)      | 94.75     |
 | pytorch-NEZHA(base-wwm)         | 94.92     |
-| pytorch-ReFormer(base)          | **95.08** |
+| pytorch-RoFormer(base)          | **95.08** |
 
 ## 参考
 https://github.com/pengming617/bert_classification
