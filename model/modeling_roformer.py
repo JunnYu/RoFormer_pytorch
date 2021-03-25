@@ -2,7 +2,6 @@ import math
 import os
 import logging
 import torch
-from fastcore.all import *
 from torch import nn
 from torch.nn import CrossEntropyLoss, MSELoss
 
@@ -34,7 +33,6 @@ class SinusoidalEmbedding(nn.Module):
     def __init__(self, output_dim):
         super().__init__()
         self.output_dim = output_dim
-
 
     def forward(self, inputs):
         input_shape = inputs.shape

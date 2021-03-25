@@ -8,7 +8,7 @@ jieba.initialize()
 config_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_config.json'
 checkpoint_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_model.ckpt'
 dict_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/vocab.txt'
-converted_ckpt_path = "outputs/"
+converted_ckpt_path = "converted/"
 tokenizer = Tokenizer(dict_path,
                       do_lower_case=True,
                       pre_tokenize=lambda s: jieba.cut(s, HMM=False))
@@ -31,5 +31,5 @@ tf_inputs = [
 ]
 o2 = torch.tensor(model(tf_inputs).numpy())
 
-print((o1 - o2).abs().mean())
-print((o1 - o2).abs().max())
+print("mean diff :", (o1 - o2).abs().mean())
+print("max diff :", (o1 - o2).abs().max())
