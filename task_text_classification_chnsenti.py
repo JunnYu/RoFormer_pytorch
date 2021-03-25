@@ -117,7 +117,7 @@ def main():
     if args.do_eval and args.local_rank in [-1, 0]:
         results = {}
         eval_dataset = processor.create_dataset(args.eval_max_seq_length,
-                                                'dev.tsv', 'dev')
+                                                'test.tsv', 'test')
         checkpoints = [args.output_dir]
         if args.eval_all_checkpoints or args.checkpoint_number > 0:
             checkpoints = get_checkpoints(args.output_dir,

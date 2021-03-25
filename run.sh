@@ -10,6 +10,8 @@ python task_text_classification_chnsenti.py \
   --model_path=$MODEL_DIR \
   --task_name=$TASK_NAME \
   --do_train \
+  --do_eval \
+  --eval_all_checkpoints \
   --gpu=0 \
   --monitor=eval_acc \
   --data_dir=$DATA_DIR/${TASK_NAME}/ \
