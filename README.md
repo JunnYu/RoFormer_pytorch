@@ -19,7 +19,7 @@ max  difference : tensor(7.6294e-06)
 bash run.sh
 ```
 <p align="center">
-    <img src="figure/loss.jpg" width="100%" />
+    <img src="figure/loss.png" width="100%" />
 </p>
 
 ### 结果
