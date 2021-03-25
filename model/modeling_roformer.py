@@ -222,16 +222,13 @@ class RoFormerSelfAttention(nn.Module):
         relations_keys_values = self.rotary_positions_encoding(
             hidden_states)[:, None].to(hidden_states.device)
 
-        cos_pos = torch.stack(
-            [  #bs,nhead,seqlen,dim
-                relations_keys_values[..., 1::2], relations_keys_values[...,
-                                                                        1::2]
-            ],
-            axis=-1).reshape_as(relations_keys_values)
+        cos_pos = torch.repeat_interleave(relations_keys_values[..., 1::2],
+                                          2,
+                                          axis=-1)
 
-        sin_pos = torch.stack(
-            [relations_keys_values[..., ::2], relations_keys_values[..., ::2]],
-            axis=-1).reshape_as(relations_keys_values)
+        sin_pos = torch.repeat_interleave(relations_keys_values[..., ::2],
+                                          2,
+                                          axis=-1)
         # query_layer b h l d
         qw2 = torch.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
                           axis=-1).reshape_as(query_layer)
