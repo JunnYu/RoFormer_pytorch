@@ -2,3 +2,8 @@ git+https://github.com/lonePatient/TorchBlocks.git
 transformers
 bert4keras
 jieba
+scikit-learn
+fastcore
+numpy
+pandas
+matplotlib
