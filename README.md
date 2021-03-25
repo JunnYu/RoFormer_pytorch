@@ -1,6 +1,12 @@
-# huggingface pytorch roformer
+# PyTorch RoFormer
+原版Tensorflow权重(https://github.com/ZhuiyiTechnology/roformer)
+- [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (提取码：xy9x)
 
-## 权重转换
+已经转化为PyTorch权重
+- [chinese_roformer_base.zip](https://pan.baidu.com/s/1dw3--OTHFaoA2QO4LwEggA) (提取码：e8oe)
+
+
+## 手动权重转换
 ```bash
 python convert_roformer_original_tf_checkpoint_to_pytorch.py \
     --tf_checkpoint_path=xxxxxx/chinese_roformer_L-12_H-768_A-12/bert_model.ckpt \
