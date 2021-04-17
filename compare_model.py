@@ -27,10 +27,11 @@ model = build_transformer_model(config_path=config_path,
 bert4keras_outputs = torch.tensor(model(tf_inputs).numpy())
 # pt
 roformer_tokenizer = RoFormerTokenizer.from_pretrained(converted_ckpt_path)
-pt_model = RoFormerModel.from_pretrained(converted_ckpt_path)
+pt_model = RoFormerModel.from_pretrained(converted_ckpt_path,
+                                         add_pooling_layer=False)
 pt_inputs = roformer_tokenizer(text, return_tensors="pt")
 with torch.no_grad():
-    pt_outputs = pt_model(**pt_inputs)[0]
+    pt_outputs = pt_model(**pt_inputs).last_hidden_state
 
 print("mean diff :", (bert4keras_outputs - pt_outputs).abs().mean())
 print("max diff :", (bert4keras_outputs - pt_outputs).abs().max())
