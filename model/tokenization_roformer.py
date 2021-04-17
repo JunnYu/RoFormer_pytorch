@@ -1,6 +1,5 @@
 import jieba
-from transformers import BertTokenizer
-from transformers import BasicTokenizer
+from transformers import BasicTokenizer, BertTokenizer
 
 
 class CustomBasicTokenizer(BasicTokenizer):
