@@ -1,6 +1,5 @@
 import os
 import csv
-from bert4keras.tokenizers import Tokenizer
 
 from torchblocks.metrics import Accuracy
 from torchblocks.callback import TrainLogger
@@ -10,11 +9,11 @@ from torchblocks.utils import seed_everything, dict_to_text, build_argparse
 from torchblocks.utils import prepare_device, get_checkpoints
 
 from transformers import WEIGHTS_NAME
-from model.modeling_roformer import RoFormerForSequenceClassification
-from model.configuration_roformer import RoFormerConfig
+from model import RoFormerForSequenceClassification, RoFormerConfig, RoFormerTokenizer
 
 MODEL_CLASSES = {
-    'roformer': (RoFormerConfig, RoFormerForSequenceClassification, Tokenizer)
+    'roformer':
+    (RoFormerConfig, RoFormerForSequenceClassification, RoFormerTokenizer)
 }
 
 
@@ -31,18 +30,6 @@ class ChnSentiProcessor(TextClassifierProcessor):
             for line in reader:
                 lines.append(line)
             return lines
-
-    def encode_plus(self, text_a, text_b, max_length):
-        inputs = self.tokenizer.encode(first_text=text_a,
-                                       second_text=text_b,
-                                       maxlen=max_length)
-        pad_len = max_length - len(inputs[0])
-
-        return {
-            "input_ids": inputs[0] + [0] * pad_len,
-            "token_type_ids": inputs[1] + [0] * pad_len,
-            "attention_mask": [1] * len(inputs[0]) + [0] * pad_len
-        }
 
     def create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
