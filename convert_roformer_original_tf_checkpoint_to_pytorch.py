@@ -17,7 +17,7 @@
 import argparse
 import logging
 import torch
-from model.modeling_roformer import RoFormerConfig, RoFormerForPreTraining, load_tf_weights_in_roformer
+from model import RoFormerConfig, RoFormerForPreTraining, load_tf_weights_in_roformer
 
 logging.basicConfig(level=logging.INFO)
 
