@@ -15,9 +15,14 @@ python convert_roformer_original_tf_checkpoint_to_pytorch.py \
 ```
 ## tf与pytorch精度对齐
 ```python
-python compare.py
+python compare_model.py
 mean difference : tensor(4.3925e-07)
 max  difference : tensor(7.6294e-06)
+```
+## bert4keras的WoBertTokenizer与huggingface版本的WoTokenizer比较
+```python
+python compare_tokenizer.py
+True
 ```
 
 ## 中文情感分类(chnsenti)
