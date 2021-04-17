@@ -67,10 +67,11 @@ class RoFormerTokenizer(BertTokenizer):
                          tokenize_chinese_chars=tokenize_chinese_chars,
                          strip_accents=strip_accents,
                          **kwargs)
-        self.basic_tokenizer = CustomBasicTokenizer(
-            vocab=self.vocab,
-            do_lower_case=do_lower_case,
-            never_split=never_split,
-            tokenize_chinese_chars=tokenize_chinese_chars,
-            strip_accents=strip_accents,
-        )
+        if self.do_basic_tokenize:
+            self.basic_tokenizer = CustomBasicTokenizer(
+                vocab=self.vocab,
+                do_lower_case=do_lower_case,
+                never_split=never_split,
+                tokenize_chinese_chars=tokenize_chinese_chars,
+                strip_accents=strip_accents,
+            )
