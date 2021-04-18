@@ -17,6 +17,10 @@ with torch.no_grad():
     outputs = model(**inputs).last_hidden_state
 print(outputs.shape)
 ```
+```python
+python test_mlm.py
+今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
+```
  
 ## 手动权重转换
 ```bash
