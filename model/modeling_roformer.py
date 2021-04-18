@@ -48,25 +48,6 @@ ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = []
 ROFORMER_PRETRAINED_MODEL_ARCHIVE_MAP = {}
 
 
-class SinusoidalEmbedding(nn.Module):
-    def __init__(self, output_dim):
-        super().__init__()
-        self.output_dim = output_dim
-
-    def forward(self, inputs):
-        seq_len = inputs.shape[1]
-        position_ids = torch.arange(0, seq_len, dtype=torch.float32)[None]
-
-        indices = torch.arange(0, self.output_dim // 2, dtype=torch.float32)
-        indices = torch.pow(10000.0, -2 * indices / self.output_dim)
-        embeddings = torch.einsum('bn,d->bnd', position_ids, indices)
-        embeddings = torch.stack([embeddings.sin(), embeddings.cos()], dim=-1)
-        embeddings = torch.reshape(
-            embeddings, (-1, seq_len, self.output_dim)).to(inputs.device)
-
-        return embeddings
-
-
 def load_tf_weights_in_roformer(model, config, tf_checkpoint_path):
     """Load tf checkpoints in a pytorch model."""
     try:
@@ -200,8 +181,6 @@ class RoFormerSelfAttention(nn.Module):
         self.value = nn.Linear(config.hidden_size, self.all_head_size)
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
 
-        self.rotary_positions_encoding = SinusoidalEmbedding(
-            self.attention_head_size)
         self.is_decoder = config.is_decoder
 
     def transpose_for_scores(self, x):
@@ -214,6 +193,7 @@ class RoFormerSelfAttention(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
+        relations_keys_values=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -251,24 +231,22 @@ class RoFormerSelfAttention(nn.Module):
 
         # rotary_positions_encoding
         #########################
-        relations_keys_values = self.rotary_positions_encoding(
-            hidden_states)[:, None]
+        if relations_keys_values is not None:
+            cos_pos = torch.repeat_interleave(relations_keys_values[..., 1::2],
+                                              2,
+                                              dim=-1)
 
-        cos_pos = torch.repeat_interleave(relations_keys_values[..., 1::2],
-                                          2,
-                                          dim=-1)
+            sin_pos = torch.repeat_interleave(relations_keys_values[..., ::2],
+                                              2,
+                                              dim=-1)
+            # query_layer b h l d
+            qw2 = torch.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
+                              dim=-1).reshape_as(query_layer)
 
-        sin_pos = torch.repeat_interleave(relations_keys_values[..., ::2],
-                                          2,
-                                          dim=-1)
-        # query_layer b h l d
-        qw2 = torch.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
-                          dim=-1).reshape_as(query_layer)
-
-        query_layer = query_layer * cos_pos + qw2 * sin_pos
-        kw2 = torch.stack([-key_layer[..., 1::2], key_layer[..., ::2]],
-                          dim=-1).reshape_as(key_layer)
-        key_layer = key_layer * cos_pos + kw2 * sin_pos
+            query_layer = query_layer * cos_pos + qw2 * sin_pos
+            kw2 = torch.stack([-key_layer[..., 1::2], key_layer[..., ::2]],
+                              dim=-1).reshape_as(key_layer)
+            key_layer = key_layer * cos_pos + kw2 * sin_pos
         #########################
 
         if self.is_decoder:
@@ -347,6 +325,7 @@ class RoFormerAttention(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
+        relations_keys_values=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -356,6 +335,7 @@ class RoFormerAttention(nn.Module):
         self_outputs = self.self(
             hidden_states,
             attention_mask,
+            relations_keys_values,
             head_mask,
             encoder_hidden_states,
             encoder_attention_mask,
@@ -386,6 +366,7 @@ class RoFormerLayer(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
+        relations_keys_values=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -398,6 +379,7 @@ class RoFormerLayer(nn.Module):
         self_attention_outputs = self.attention(
             hidden_states,
             attention_mask,
+            relations_keys_values,
             head_mask,
             output_attentions=output_attentions,
             past_key_value=self_attn_past_key_value,
@@ -424,6 +406,7 @@ class RoFormerLayer(nn.Module):
             cross_attention_outputs = self.crossattention(
                 attention_output,
                 attention_mask,
+                relations_keys_values,
                 head_mask,
                 encoder_hidden_states,
                 encoder_attention_mask,
@@ -467,6 +450,7 @@ class RoFormerEncoder(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
+        relations_keys_values=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -480,8 +464,8 @@ class RoFormerEncoder(nn.Module):
         all_self_attentions = () if output_attentions else None
         all_cross_attentions = (
         ) if output_attentions and self.config.add_cross_attention else None
-
         next_decoder_cache = () if use_cache else None
+
         for i, layer_module in enumerate(self.layer):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states, )
@@ -510,6 +494,7 @@ class RoFormerEncoder(nn.Module):
                     create_custom_forward(layer_module),
                     hidden_states,
                     attention_mask,
+                    relations_keys_values,
                     layer_head_mask,
                     encoder_hidden_states,
                     encoder_attention_mask,
@@ -518,6 +503,7 @@ class RoFormerEncoder(nn.Module):
                 layer_outputs = layer_module(
                     hidden_states,
                     attention_mask,
+                    relations_keys_values,
                     layer_head_mask,
                     encoder_hidden_states,
                     encoder_attention_mask,
@@ -657,6 +643,19 @@ class RoFormerModel(RoFormerPreTrainedModel):
         for layer, heads in heads_to_prune.items():
             self.encoder.layer[layer].attention.prune_heads(heads)
 
+    def get_rotary_positions_embeddings(self, inputs):
+        output_dim = self.config.hidden_size // self.config.num_attention_heads
+        seq_len = inputs.size(1)
+        position_ids = torch.arange(0, seq_len, dtype=torch.float32)[None]
+
+        indices = torch.arange(0, output_dim // 2, dtype=torch.float32)
+        indices = torch.pow(10000.0, -2 * indices / output_dim)
+        embeddings = torch.einsum('bn,d->bnd', position_ids, indices)
+        embeddings = torch.stack([embeddings.sin(), embeddings.cos()], dim=-1)
+        embeddings = torch.reshape(embeddings,
+                                   (-1, seq_len, output_dim)).to(inputs.device)
+        return embeddings[:, None]
+
     @add_start_docstrings_to_model_forward(
         ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
@@ -787,9 +786,12 @@ class RoFormerModel(RoFormerPreTrainedModel):
         embedding_output = self.embeddings(input_ids=input_ids,
                                            token_type_ids=token_type_ids,
                                            inputs_embeds=inputs_embeds)
+        relations_keys_values = self.get_rotary_positions_embeddings(
+            embedding_output)
         encoder_outputs = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
+            relations_keys_values=relations_keys_values,
             head_mask=head_mask,
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_extended_attention_mask,
