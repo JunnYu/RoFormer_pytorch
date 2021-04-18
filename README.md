@@ -5,13 +5,17 @@
 已经转化为PyTorch权重
 - [chinese_roformer_base.zip](https://pan.baidu.com/s/1P9Dcgq13Fs7O7yKyMLsXWw) (提取码：a79k)
 
+## 安装
+```bash
+pip install git+https://github.com/JunnYu/RoFormer_pytorch.git
+```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_base
 
 ## 使用
 ```python
 import torch
-from model import RoFormerModel, RoFormerTokenizer
+from roformer import RoFormerModel, RoFormerTokenizer
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
 model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
 text = "这里基本保留了唐宋遗留下来的坊巷格局和大量明清古建筑，其中各级文保单位29处，被誉为“里坊制度的活化石”“明清建筑博物馆”！"
@@ -23,7 +27,7 @@ print(outputs.shape)
 ## MLM测试
 ```python
 import torch
-from model import RoFormerForMaskedLM, RoFormerTokenizer
+from roformer import RoFormerForMaskedLM, RoFormerTokenizer
 text = "今天[MASK]很好，我[MASK]去公园玩。"
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
 model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")

@@ -1,5 +1,5 @@
 import jieba
-from model import RoFormerTokenizer
+from roformer import RoFormerTokenizer
 from bert4keras.tokenizers import Tokenizer
 
 dict_path = 'pretrained_models/chinese_roformer_base'

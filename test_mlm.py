@@ -1,5 +1,5 @@
 import torch
-from model import RoFormerForMaskedLM, RoFormerTokenizer
+from roformer import RoFormerForMaskedLM, RoFormerTokenizer
 
 text = "今天[MASK]很好，我[MASK]去公园玩。"
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
