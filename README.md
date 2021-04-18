@@ -5,21 +5,41 @@
 已经转化为PyTorch权重
 - [chinese_roformer_base.zip](https://pan.baidu.com/s/1P9Dcgq13Fs7O7yKyMLsXWw) (提取码：a79k)
 
+## huggingface.co
+https://huggingface.co/junnyu/roformer_chinese_base
+
 ## 使用
 ```python
-https://huggingface.co/junnyu/roformer_chinese_base
 import torch
 from model import RoFormerModel, RoFormerTokenizer
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
 model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
+text = "这里基本保留了唐宋遗留下来的坊巷格局和大量明清古建筑，其中各级文保单位29处，被誉为“里坊制度的活化石”“明清建筑博物馆”！"
 inputs = tokenizer(text, return_tensors="pt")
 with torch.no_grad():
     outputs = model(**inputs).last_hidden_state
 print(outputs.shape)
 ```
+## MLM测试
 ```python
-python test_mlm.py
-今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
+import torch
+from model import RoFormerForMaskedLM, RoFormerTokenizer
+text = "今天[MASK]很好，我[MASK]去公园玩。"
+tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
+model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
+inputs = tokenizer(text, return_tensors="pt")
+with torch.no_grad():
+    outputs = model(**inputs).logits[0]
+outputs_sentence = ""
+for i, id in enumerate(tokenizer.encode(text)):
+    if id == tokenizer.mask_token_id:
+        tokens = tokenizer.convert_ids_to_tokens(outputs[i].topk(k=5)[1])
+        outputs_sentence += "[" + "||".join(tokens) + "]"
+    else:
+        outputs_sentence += "".join(
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True))
+print(outputs_sentence)
+# 今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
 ```
  
 ## 手动权重转换
@@ -38,7 +58,7 @@ max  difference : tensor(7.6294e-06)
 ## bert4keras的WoBertTokenizer与huggingface版本的WoTokenizer比较
 ```python
 python compare_tokenizer.py
-True
+# True
 ```
 
 ## 中文情感分类(chnsenti)
