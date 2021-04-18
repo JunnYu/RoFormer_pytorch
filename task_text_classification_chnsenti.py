@@ -9,7 +9,7 @@ from torchblocks.utils import seed_everything, dict_to_text, build_argparse
 from torchblocks.utils import prepare_device, get_checkpoints
 
 from transformers import WEIGHTS_NAME
-from model import RoFormerForSequenceClassification, RoFormerConfig, RoFormerTokenizer
+from roformer import RoFormerForSequenceClassification, RoFormerConfig, RoFormerTokenizer
 
 MODEL_CLASSES = {
     'roformer':

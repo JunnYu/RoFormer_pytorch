@@ -3,7 +3,7 @@ import jieba
 import tensorflow as tf
 from bert4keras.tokenizers import Tokenizer
 from bert4keras.models import build_transformer_model
-from model import RoFormerModel, RoFormerTokenizer
+from roformer import RoFormerModel, RoFormerTokenizer
 
 jieba.initialize()
 config_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_config.json'
