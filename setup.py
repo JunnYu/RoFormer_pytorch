@@ -2,7 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='roformer',
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages("src"),
     version='0.0.1',
     license='MIT',
     description='roformer_pytorch',
