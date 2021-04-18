@@ -9,7 +9,8 @@ jieba.initialize()
 config_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_config.json'
 checkpoint_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_model.ckpt'
 dict_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/vocab.txt'
-converted_ckpt_path = "pretrained_models/chinese_roformer_base"
+# converted_ckpt_path = "pretrained_models/chinese_roformer_base"
+converted_ckpt_path = "junnyu/roformer_chinese_base"  #https://huggingface.co/junnyu/roformer_chinese_base
 tokenizer = Tokenizer(dict_path,
                       do_lower_case=True,
                       pre_tokenize=lambda s: jieba.cut(s, HMM=False))

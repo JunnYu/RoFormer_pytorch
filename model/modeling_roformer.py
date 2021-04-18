@@ -44,7 +44,7 @@ logger = logging.get_logger(__name__)
 _CONFIG_FOR_DOC = "RoFormerConfig"
 _TOKENIZER_FOR_DOC = "RoFormerTokenizer"
 
-ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = []
+ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = ["junnyu/roformer_chinese_base"]
 ROFORMER_PRETRAINED_MODEL_ARCHIVE_MAP = {}
 
 

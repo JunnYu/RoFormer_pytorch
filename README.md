@@ -5,7 +5,19 @@
 已经转化为PyTorch权重
 - [chinese_roformer_base.zip](https://pan.baidu.com/s/1P9Dcgq13Fs7O7yKyMLsXWw) (提取码：a79k)
 
-
+## 使用
+```python
+https://huggingface.co/junnyu/roformer_chinese_base
+import torch
+from model import RoFormerModel, RoFormerTokenizer
+tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
+model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
+inputs = tokenizer(text, return_tensors="pt")
+with torch.no_grad():
+    outputs = model(**inputs).last_hidden_state
+print(outputs.shape)
+```
+ 
 ## 手动权重转换
 ```bash
 python convert_roformer_original_tf_checkpoint_to_pytorch.py \
