@@ -130,3 +130,5 @@ dmypy.json
 test.py
 win.bat
 **/pytorch_model.bin
+
+dataset/chnsenti/*.tsv
