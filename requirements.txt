@@ -1,5 +1,5 @@
 git+https://github.com/lonePatient/TorchBlocks.git
-transformers
+transformers>=4.5.0
 bert4keras
 jieba
 scikit-learn
