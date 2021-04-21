@@ -1,7 +1,6 @@
-CURRENT_DIR=`pwd`
-export MODEL_DIR=$CURRENT_DIR/pretrained_models/chinese_roformer_base
-export DATA_DIR=$CURRENT_DIR/dataset
-export OUTPUR_DIR=$CURRENT_DIR/outputs
+export MODEL_DIR=junnyu/chinese_roformer_base
+export DATA_DIR=../dataset
+export OUTPUR_DIR=../outputs
 export TASK_NAME=chnsenti
 
 #-----------training-----------------

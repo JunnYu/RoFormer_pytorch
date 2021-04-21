@@ -53,22 +53,15 @@ python convert_roformer_original_tf_checkpoint_to_pytorch.py \
     --roformer_config_file=pretrained_models/chinese_roformer_base/config.json \
     --pytorch_dump_path=pretrained_models/chinese_roformer_base/pytorch_model.bin
 ```
+
 ## tf与pytorch精度对齐
 ```python
 python compare_model.py
 mean difference : tensor(4.3925e-07)
 max  difference : tensor(7.6294e-06)
 ```
-## bert4keras的WoBertTokenizer与huggingface版本的WoTokenizer比较
-```python
-python compare_tokenizer.py
-# True
-```
 
 ## 中文情感分类(chnsenti)
-```bash
-bash run_chnsenti.sh
-```
 <p align="center">
     <img src="figure/loss.png" width="100%" />
 </p>

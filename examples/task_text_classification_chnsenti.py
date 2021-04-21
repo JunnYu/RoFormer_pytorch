@@ -66,8 +66,8 @@ def main():
 
     # data processor
     logger.info("initializing data processor")
-    tokenizer = tokenizer_class(args.model_path + "/vocab.txt",
-                                do_lower_case=args.do_lower_case)
+    tokenizer = tokenizer_class.from_pretrained(
+        args.model_path, do_lower_case=args.do_lower_case)
     processor = ChnSentiProcessor(data_dir=args.data_dir,
                                   tokenizer=tokenizer,
                                   prefix=prefix)
