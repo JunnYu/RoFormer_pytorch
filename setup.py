@@ -11,5 +11,5 @@ setup(
     author_email='573009727@qq.com',
     url='https://github.com/JunnYu/RoFormer_pytorch',
     keywords=['roformer', 'pytorch'],
-    install_requires=['transformers>=4.5.0'],
+    install_requires=['transformers>=4.5.0', 'jieba'],
 )
