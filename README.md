@@ -8,6 +8,8 @@
 ## 安装
 ```bash
 pip install roformer
+或者
+pip install git+https://github.com/JunnYu/RoFormer_pytorch.git
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_base
