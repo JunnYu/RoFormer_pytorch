@@ -7,7 +7,7 @@
 
 ## 安装
 ```bash
-pip install git+https://github.com/JunnYu/RoFormer_pytorch.git
+pip install roformer
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_base
