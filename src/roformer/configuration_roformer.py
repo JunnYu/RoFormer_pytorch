@@ -19,8 +19,6 @@ class RoFormerConfig(PretrainedConfig):
             vocab_size (:obj:`int`, optional, defaults to 30000):
                 Vocabulary size of the ALBERT model. Defines the different tokens that
                 can be represented by the `inputs_ids` passed to the forward method of :class:`~transformers.AlbertModel`.
-            embedding_size (:obj:`int`, optional, defaults to 128):
-                Dimensionality of vocabulary embeddings.
             hidden_size (:obj:`int`, optional, defaults to 4096):
                 Dimensionality of the encoder layers and the pooler layer.
             num_hidden_layers (:obj:`int`, optional, defaults to 12):
@@ -81,7 +79,6 @@ class RoFormerConfig(PretrainedConfig):
 
     def __init__(self,
                  vocab_size=50000,
-                 embedding_size=768,
                  hidden_size=768,
                  num_hidden_layers=12,
                  num_hidden_groups=1,
@@ -98,9 +95,6 @@ class RoFormerConfig(PretrainedConfig):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
 
         self.vocab_size = vocab_size
-        if embedding_size != hidden_size:
-            embedding_size = hidden_size
-        self.embedding_size = embedding_size
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
         self.num_hidden_groups = num_hidden_groups
