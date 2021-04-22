@@ -70,6 +70,9 @@ def load_tf_weights_in_roformer(model, config, tf_checkpoint_path):
     for name, shape in init_vars:
         logger.info("Loading TF weight {} with shape {}".format(name, shape))
         array = tf.train.load_variable(tf_path, name)
+        # ignore position_ids and position_embeddings.weight
+        if "position" in name:
+            continue
         names.append(name.replace("bert", "roformer"))
         arrays.append(array)
 
