@@ -3,7 +3,7 @@
 - [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (提取码：xy9x)
 
 已经转化为PyTorch权重
-- [chinese_roformer_base.zip](https://pan.baidu.com/s/1P9Dcgq13Fs7O7yKyMLsXWw) (提取码：a79k)
+- [chinese_roformer_base.zip](https://pan.baidu.com/s/10W5BYDQSeLyajTWjexZeoQ) (提取码：bimr)
 
 ## 安装
 ```bash
