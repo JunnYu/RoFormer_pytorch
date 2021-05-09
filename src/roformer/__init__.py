@@ -15,6 +15,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import TYPE_CHECKING
 
 from transformers.file_utils import (
     _BaseLazyModule,
@@ -61,21 +62,58 @@ if is_tf_available():
         "TFRoFormerModel",
         "TFRoFormerPreTrainedModel",
     ]
-import importlib
-import os
-import sys
+if TYPE_CHECKING:
+    from .configuration_roformer import ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP, RoFormerConfig
+    from .tokenization_roformer import CustomBasicTokenizer, RoFormerTokenizer
 
+    if is_torch_available():
+        from .modeling_roformer import (
+            ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST,
+            RoFormerForMaskedLM,
+            RoFormerForMultipleChoice,
+            RoFormerForNextSentencePrediction,
+            RoFormerForPreTraining,
+            RoFormerForQuestionAnswering,
+            RoFormerForSequenceClassification,
+            RoFormerForTokenClassification,
+            RoFormerLayer,
+            RoFormerLMHeadModel,
+            RoFormerModel,
+            RoFormerPreTrainedModel,
+            load_tf_weights_in_roformer,
+        )
 
-class _LazyModule(_BaseLazyModule):
-    """
-    Module class that surfaces all objects but only performs associated imports when the objects are requested.
-    """
+    if is_tf_available():
+        from .modeling_tf_roformer import (
+            TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST,
+            TFRoFormerEmbeddings,
+            TFRoFormerForMaskedLM,
+            TFRoFormerForMultipleChoice,
+            TFRoFormerForNextSentencePrediction,
+            TFRoFormerForPreTraining,
+            TFRoFormerForQuestionAnswering,
+            TFRoFormerForSequenceClassification,
+            TFRoFormerForTokenClassification,
+            TFRoFormerLMHeadModel,
+            TFRoFormerMainLayer,
+            TFRoFormerModel,
+            TFRoFormerPreTrainedModel,
+        )
 
-    __file__ = globals()["__file__"]
-    __path__ = [os.path.dirname(__file__)]
+else:
+    import importlib
+    import os
+    import sys
 
-    def _get_module(self, module_name: str):
-        return importlib.import_module("." + module_name, self.__name__)
+    class _LazyModule(_BaseLazyModule):
+        """
+        Module class that surfaces all objects but only performs associated imports when the objects are requested.
+        """
 
+        __file__ = globals()["__file__"]
+        __path__ = [os.path.dirname(__file__)]
 
-sys.modules[__name__] = _LazyModule(__name__, _import_structure)
+        def _get_module(self, module_name: str):
+            return importlib.import_module("." + module_name, self.__name__)
+
+    sys.modules[__name__] = _LazyModule(__name__, _import_structure)

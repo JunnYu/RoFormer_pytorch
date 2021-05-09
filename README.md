@@ -17,35 +17,58 @@ https://huggingface.co/junnyu/roformer_chinese_base
 ## 使用
 ```python
 import torch
-from roformer import RoFormerModel, RoFormerTokenizer
+from roformer import RoFormerModel, RoFormerTokenizer, TFRoFormerModel
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
-model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
+pt_model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
+tf_model = TFRoFormerModel.from_pretrained("junnyu/roformer_chinese_base",
+                                           from_pt=True)
 text = "这里基本保留了唐宋遗留下来的坊巷格局和大量明清古建筑，其中各级文保单位29处，被誉为“里坊制度的活化石”“明清建筑博物馆”！"
-inputs = tokenizer(text, return_tensors="pt")
+pt_inputs = tokenizer(text, return_tensors="pt")
+tf_inputs = tokenizer(text, return_tensors="tf")
 with torch.no_grad():
-    outputs = model(**inputs).last_hidden_state
-print(outputs.shape)
+    pt_outputs = pt_model(**pt_inputs).last_hidden_state
+print(pt_outputs.shape)
+tf_outputs = tf_model(**tf_inputs, training=False).last_hidden_state
+print(tf_outputs.shape)
 ```
 ## MLM测试
 ```python
 import torch
-from roformer import RoFormerForMaskedLM, RoFormerTokenizer
+import tensorflow as tf
+from roformer import RoFormerForMaskedLM, RoFormerTokenizer, TFRoFormerForMaskedLM
 text = "今天[MASK]很好，我[MASK]去公园玩。"
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
-model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
-inputs = tokenizer(text, return_tensors="pt")
+pt_model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
+tf_model = TFRoFormerForMaskedLM.from_pretrained(
+    "junnyu/roformer_chinese_base", from_pt=True)
+pt_inputs = tokenizer(text, return_tensors="pt")
+tf_inputs = tokenizer(text, return_tensors="tf")
+# pytorch
 with torch.no_grad():
-    outputs = model(**inputs).logits[0]
-outputs_sentence = ""
+    pt_outputs = pt_model(**pt_inputs).logits[0]
+pt_outputs_sentence = "pytorch: "
 for i, id in enumerate(tokenizer.encode(text)):
     if id == tokenizer.mask_token_id:
-        tokens = tokenizer.convert_ids_to_tokens(outputs[i].topk(k=5)[1])
-        outputs_sentence += "[" + "||".join(tokens) + "]"
+        tokens = tokenizer.convert_ids_to_tokens(pt_outputs[i].topk(k=5)[1])
+        pt_outputs_sentence += "[" + "||".join(tokens) + "]"
     else:
-        outputs_sentence += "".join(
+        pt_outputs_sentence += "".join(
             tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True))
-print(outputs_sentence)
-# 今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
+print(pt_outputs_sentence)
+# tf
+tf_outputs = tf_model(**tf_inputs, training=False).logits[0]
+tf_outputs_sentence = "tf: "
+for i, id in enumerate(tokenizer.encode(text)):
+    if id == tokenizer.mask_token_id:
+        tokens = tokenizer.convert_ids_to_tokens(
+            tf.math.top_k(tf_outputs[i], k=5)[1])
+        tf_outputs_sentence += "[" + "||".join(tokens) + "]"
+    else:
+        tf_outputs_sentence += "".join(
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True))
+print(tf_outputs_sentence)
+# pytorch: 今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
+# tf:      今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
 ```
  
 ## 手动权重转换
