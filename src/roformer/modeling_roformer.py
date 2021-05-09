@@ -1,3 +1,20 @@
+# coding=utf-8
+# Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
+# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""PyTorch RoFormer model. """
+
 import math
 import os
 import torch
@@ -195,7 +212,7 @@ class RoFormerSelfAttention(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
-        relations_keys_values=None,
+        sinusoidal_pos=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -233,12 +250,12 @@ class RoFormerSelfAttention(nn.Module):
 
         # rotary_positions_encoding
         #########################
-        if relations_keys_values is not None:
-            cos_pos = torch.repeat_interleave(relations_keys_values[..., 1::2],
+        if sinusoidal_pos is not None:
+            cos_pos = torch.repeat_interleave(sinusoidal_pos[..., 1::2],
                                               2,
                                               dim=-1)
 
-            sin_pos = torch.repeat_interleave(relations_keys_values[..., ::2],
+            sin_pos = torch.repeat_interleave(sinusoidal_pos[..., ::2],
                                               2,
                                               dim=-1)
             # query_layer b h l d
@@ -327,7 +344,7 @@ class RoFormerAttention(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
-        relations_keys_values=None,
+        sinusoidal_pos=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -337,7 +354,7 @@ class RoFormerAttention(nn.Module):
         self_outputs = self.self(
             hidden_states,
             attention_mask,
-            relations_keys_values,
+            sinusoidal_pos,
             head_mask,
             encoder_hidden_states,
             encoder_attention_mask,
@@ -368,7 +385,7 @@ class RoFormerLayer(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
-        relations_keys_values=None,
+        sinusoidal_pos=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -381,7 +398,7 @@ class RoFormerLayer(nn.Module):
         self_attention_outputs = self.attention(
             hidden_states,
             attention_mask,
-            relations_keys_values,
+            sinusoidal_pos,
             head_mask,
             output_attentions=output_attentions,
             past_key_value=self_attn_past_key_value,
@@ -408,7 +425,7 @@ class RoFormerLayer(nn.Module):
             cross_attention_outputs = self.crossattention(
                 attention_output,
                 attention_mask,
-                relations_keys_values,
+                sinusoidal_pos,
                 head_mask,
                 encoder_hidden_states,
                 encoder_attention_mask,
@@ -452,7 +469,7 @@ class RoFormerEncoder(nn.Module):
         self,
         hidden_states,
         attention_mask=None,
-        relations_keys_values=None,
+        sinusoidal_pos=None,
         head_mask=None,
         encoder_hidden_states=None,
         encoder_attention_mask=None,
@@ -496,7 +513,7 @@ class RoFormerEncoder(nn.Module):
                     create_custom_forward(layer_module),
                     hidden_states,
                     attention_mask,
-                    relations_keys_values,
+                    sinusoidal_pos,
                     layer_head_mask,
                     encoder_hidden_states,
                     encoder_attention_mask,
@@ -505,7 +522,7 @@ class RoFormerEncoder(nn.Module):
                 layer_outputs = layer_module(
                     hidden_states,
                     attention_mask,
-                    relations_keys_values,
+                    sinusoidal_pos,
                     layer_head_mask,
                     encoder_hidden_states,
                     encoder_attention_mask,
@@ -645,7 +662,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
         for layer, heads in heads_to_prune.items():
             self.encoder.layer[layer].attention.prune_heads(heads)
 
-    def get_rotary_positions_embeddings(self, inputs):
+    def get_sinusoidal_positions_embeddings(self, inputs):
         output_dim = self.config.hidden_size // self.config.num_attention_heads
         seq_len = inputs.size(1)
         position_ids = torch.arange(0, seq_len, dtype=torch.float32)[None]
@@ -788,12 +805,12 @@ class RoFormerModel(RoFormerPreTrainedModel):
         embedding_output = self.embeddings(input_ids=input_ids,
                                            token_type_ids=token_type_ids,
                                            inputs_embeds=inputs_embeds)
-        relations_keys_values = self.get_rotary_positions_embeddings(
+        sinusoidal_pos = self.get_sinusoidal_positions_embeddings(
             embedding_output)
         encoder_outputs = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
-            relations_keys_values=relations_keys_values,
+            sinusoidal_pos=sinusoidal_pos,
             head_mask=head_mask,
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_extended_attention_mask,

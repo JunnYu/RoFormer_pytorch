@@ -59,9 +59,14 @@ python convert_roformer_original_tf_checkpoint_to_pytorch.py \
 ## tf与pytorch精度对齐
 ```python
 python compare_model.py
-mean difference : tensor(4.3925e-07)
-max  difference : tensor(7.6294e-06)
+bert4keras vs pytorch
+mean diff : tensor(4.3925e-07)
+max diff : tensor(7.6294e-06)
+bert4keras vs tf2.0
+mean diff : tensor(3.4151e-07)
+max diff : tensor(3.8147e-06)
 ```
+
 
 ## 中文情感分类(chnsenti)
 <p align="center">
