@@ -14,6 +14,7 @@ pip install roformer
 pip install git+https://github.com/JunnYu/RoFormer_pytorch.git
 ```
 ## huggingface.co
+https://huggingface.co/junnyu/roformer_chinese_small
 https://huggingface.co/junnyu/roformer_chinese_base
 
 ## 使用
