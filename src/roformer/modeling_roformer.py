@@ -146,6 +146,7 @@ class RoFormerEmbeddings(nn.Module):
     """
     Construct the embeddings from word, position and token_type embeddings.
     """
+
     def __init__(self, config):
         super().__init__()
 
@@ -220,7 +221,7 @@ class RoFormerSelfAttention(nn.Module):
         output_attentions=False,
     ):
         mixed_query_layer = self.query(hidden_states)
-
+        query_layer = self.transpose_for_scores(mixed_query_layer)
         # If this is instantiated as a cross-attention module, the keys
         # and values come from an encoder; the attention mask needs to be
         # such that the encoder's padding tokens are not attended to.
@@ -245,28 +246,25 @@ class RoFormerSelfAttention(nn.Module):
         else:
             key_layer = self.transpose_for_scores(self.key(hidden_states))
             value_layer = self.transpose_for_scores(self.value(hidden_states))
+            # rotary_positions_encoding
+            #########################
+            if sinusoidal_pos is not None:
+                cos_pos = torch.repeat_interleave(sinusoidal_pos[..., 1::2],
+                                                  2,
+                                                  dim=-1)
 
-        query_layer = self.transpose_for_scores(mixed_query_layer)
+                sin_pos = torch.repeat_interleave(sinusoidal_pos[..., ::2],
+                                                  2,
+                                                  dim=-1)
+                # query_layer b h l d
+                qw2 = torch.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
+                                  dim=-1).reshape_as(query_layer)
 
-        # rotary_positions_encoding
-        #########################
-        if sinusoidal_pos is not None:
-            cos_pos = torch.repeat_interleave(sinusoidal_pos[..., 1::2],
-                                              2,
-                                              dim=-1)
-
-            sin_pos = torch.repeat_interleave(sinusoidal_pos[..., ::2],
-                                              2,
-                                              dim=-1)
-            # query_layer b h l d
-            qw2 = torch.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
-                              dim=-1).reshape_as(query_layer)
-
-            query_layer = query_layer * cos_pos + qw2 * sin_pos
-            kw2 = torch.stack([-key_layer[..., 1::2], key_layer[..., ::2]],
-                              dim=-1).reshape_as(key_layer)
-            key_layer = key_layer * cos_pos + kw2 * sin_pos
-        #########################
+                query_layer = query_layer * cos_pos + qw2 * sin_pos
+                kw2 = torch.stack([-key_layer[..., 1::2], key_layer[..., ::2]],
+                                  dim=-1).reshape_as(key_layer)
+                key_layer = key_layer * cos_pos + kw2 * sin_pos
+            #########################
 
         if self.is_decoder:
             # if cross_attention save Tuple(torch.Tensor, torch.Tensor) of all cross attention key/value_states.
@@ -337,7 +335,8 @@ class RoFormerAttention(nn.Module):
         # Update hyper params and store pruned heads
         self.self.num_attention_heads = self.self.num_attention_heads - len(
             heads)
-        self.self.all_head_size = self.self.attention_head_size * self.self.num_attention_heads
+        self.self.all_head_size = self.self.attention_head_size * \
+            self.self.num_attention_heads
         self.pruned_heads = self.pruned_heads.union(heads)
 
     def forward(
@@ -640,6 +639,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
         https://arxiv.org/abs/1706.03762
 
     """
+
     def __init__(self, config, add_pooling_layer=True):
         super().__init__(config)
         self.config = config
@@ -662,18 +662,19 @@ class RoFormerModel(RoFormerPreTrainedModel):
         for layer, heads in heads_to_prune.items():
             self.encoder.layer[layer].attention.prune_heads(heads)
 
-    def get_sinusoidal_positions_embeddings(self, inputs):
+    def get_sinusoidal_position_embeddings(self, inputs):
         output_dim = self.config.hidden_size // self.config.num_attention_heads
         seq_len = inputs.size(1)
-        position_ids = torch.arange(0, seq_len, dtype=torch.float32)[None]
+        position_ids = torch.arange(
+            0, seq_len, dtype=torch.float32, device=inputs.device)
 
-        indices = torch.arange(0, output_dim // 2, dtype=torch.float32)
+        indices = torch.arange(
+            0, output_dim // 2, dtype=torch.float32, device=inputs.device)
         indices = torch.pow(10000.0, -2 * indices / output_dim)
-        embeddings = torch.einsum('bn,d->bnd', position_ids, indices)
+        embeddings = torch.einsum('n,d->nd', position_ids, indices)
         embeddings = torch.stack([embeddings.sin(), embeddings.cos()], dim=-1)
-        embeddings = torch.reshape(embeddings,
-                                   (-1, seq_len, output_dim)).to(inputs.device)
-        return embeddings[:, None]
+        embeddings = torch.reshape(embeddings, (seq_len, output_dim))
+        return embeddings[None, None, :, :]
 
     @add_start_docstrings_to_model_forward(
         ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -805,7 +806,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
         embedding_output = self.embeddings(input_ids=input_ids,
                                            token_type_ids=token_type_ids,
                                            inputs_embeds=inputs_embeds)
-        sinusoidal_pos = self.get_sinusoidal_positions_embeddings(
+        sinusoidal_pos = self.get_sinusoidal_position_embeddings(
             embedding_output)
         encoder_outputs = self.encoder(
             embedding_output,
@@ -1234,7 +1235,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
             attention_mask,
             attention_mask.new_zeros((attention_mask.shape[0], 1))
         ],
-                                   dim=-1)
+            dim=-1)
         dummy_token = torch.full((effective_batch_size, 1),
                                  self.config.pad_token_id,
                                  dtype=torch.long,

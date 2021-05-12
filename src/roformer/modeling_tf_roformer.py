@@ -77,6 +77,7 @@ class TFRoFormerPreTrainingLoss:
     NSP + MLM. .. note:: Any label of -100 will be ignored (along with the corresponding logits) in the loss
     computation.
     """
+
     def compute_loss(self, labels: tf.Tensor, logits: tf.Tensor) -> tf.Tensor:
         loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
@@ -91,7 +92,7 @@ class TFRoFormerPreTrainingLoss:
         )
         masked_lm_labels = tf.boolean_mask(tensor=tf.reshape(
             tensor=labels["labels"], shape=(-1, )),
-                                           mask=masked_lm_active_loss)
+            mask=masked_lm_active_loss)
         next_sentence_active_loss = tf.not_equal(
             tf.reshape(tensor=labels["next_sentence_label"], shape=(-1, )),
             -100)
@@ -100,7 +101,7 @@ class TFRoFormerPreTrainingLoss:
             mask=next_sentence_active_loss)
         next_sentence_label = tf.boolean_mask(tensor=tf.reshape(
             tensor=labels["next_sentence_label"], shape=(-1, )),
-                                              mask=next_sentence_active_loss)
+            mask=next_sentence_active_loss)
         masked_lm_loss = loss_fn(y_true=masked_lm_labels,
                                  y_pred=masked_lm_reduced_logits)
         next_sentence_loss = loss_fn(y_true=next_sentence_label,
@@ -115,6 +116,7 @@ class TFRoFormerPreTrainingLoss:
 
 class TFRoFormerEmbeddings(tf.keras.layers.Layer):
     """Construct the embeddings from word, position and token_type embeddings."""
+
     def __init__(self, config: RoFormerConfig, **kwargs):
         super().__init__(**kwargs)
 
@@ -242,11 +244,11 @@ class TFRoFormerSelfAttention(tf.keras.layers.Layer):
             sin_pos = tf.repeat(sinusoidal_pos[..., ::2], 2, axis=-1)
             qw2 = tf.stack([-query_layer[..., 1::2], query_layer[..., ::2]],
                            axis=-1)
-            qw2 = tf.reshape(qw2, tf.shape(query_layer))
+            qw2 = tf.reshape(qw2, shape_list(query_layer))
             query_layer = query_layer * cos_pos + qw2 * sin_pos
             kw2 = tf.stack([-key_layer[..., 1::2], key_layer[..., ::2]],
                            axis=-1)
-            kw2 = tf.reshape(kw2, tf.shape(key_layer))
+            kw2 = tf.reshape(kw2, shape_list(key_layer))
             key_layer = key_layer * cos_pos + kw2 * sin_pos
 
         # Take the dot product between "query" and "key" to get the raw attention scores.
@@ -631,18 +633,18 @@ class TFRoFormerMainLayer(tf.keras.layers.Layer):
         self.embeddings.weight = value
         self.embeddings.vocab_size = shape_list(value)[0]
 
-    def get_sinusoidal_positions_embeddings(self, inputs):
+    def get_sinusoidal_position_embeddings(self, inputs):
         output_dim = self.config.hidden_size // self.config.num_attention_heads
-        seq_len = tf.shape(inputs)[1]
-        position_ids = tf.range(0, seq_len, dtype=inputs.dtype)[None]
+        seq_len = shape_list(inputs)[1]
+        position_ids = tf.range(0, seq_len, dtype=inputs.dtype)
 
         indices = tf.range(0, output_dim // 2, dtype=inputs.dtype)
         indices = tf.pow(10000.0, -2 * indices / output_dim)
-        embeddings = tf.einsum('bn,d->bnd', position_ids, indices)
+        embeddings = tf.einsum('n,d->nd', position_ids, indices)
         embeddings = tf.stack(
             [tf.sin(embeddings), tf.cos(embeddings)], axis=-1)
-        embeddings = tf.reshape(embeddings, (-1, seq_len, output_dim))
-        return embeddings[:, None]
+        embeddings = tf.reshape(embeddings, (seq_len, output_dim))
+        return embeddings[None, None, :, :]
 
     def _prune_heads(self, heads_to_prune):
         """
@@ -704,7 +706,7 @@ class TFRoFormerMainLayer(tf.keras.layers.Layer):
             inputs_embeds=inputs["inputs_embeds"],
             training=inputs["training"],
         )
-        sinusoidal_pos = self.get_sinusoidal_positions_embeddings(
+        sinusoidal_pos = self.get_sinusoidal_position_embeddings(
             embedding_output)
         # We create a 3D attention mask from a 2D tensor mask.
         # Sizes are [batch_size, 1, 1, to_seq_length]
@@ -1680,7 +1682,7 @@ class TFRoFormerForMultipleChoice(TFRoFormerPreTrainedModel,
         flat_inputs_embeds = (tf.reshape(
             tensor=inputs["inputs_embeds"],
             shape=(-1, seq_length, shape_list(inputs["inputs_embeds"])[3]))
-                              if inputs["inputs_embeds"] is not None else None)
+            if inputs["inputs_embeds"] is not None else None)
         outputs = self.roformer(
             input_ids=flat_input_ids,
             attention_mask=flat_attention_mask,
