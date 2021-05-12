@@ -23,14 +23,10 @@ class RoFormerConfig(PretrainedConfig):
                 Dimensionality of the encoder layers and the pooler layer.
             num_hidden_layers (:obj:`int`, optional, defaults to 12):
                 Number of hidden layers in the Transformer encoder.
-            num_hidden_groups (:obj:`int`, optional, defaults to 1):
-                Number of groups for the hidden layers, parameters in the same group are shared.
             num_attention_heads (:obj:`int`, optional, defaults to 64):
                 Number of attention heads for each attention layer in the Transformer encoder.
             intermediate_size (:obj:`int`, optional, defaults to 16384):
                 The dimensionality of the "intermediate" (i.e., feed-forward) layer in the Transformer encoder.
-            inner_group_num (:obj:`int`, optional, defaults to 1):
-                The number of inner repetition of attention and ffn.
             hidden_act (:obj:`str` or :obj:`function`, optional, defaults to "gelu_new"):
                 The non-linear activation function (function or string) in the encoder and pooler.
                 If string, "gelu", "relu", "swish" and "gelu_new" are supported.
@@ -81,7 +77,6 @@ class RoFormerConfig(PretrainedConfig):
                  vocab_size=50000,
                  hidden_size=768,
                  num_hidden_layers=12,
-                 num_hidden_groups=1,
                  num_attention_heads=12,
                  intermediate_size=3072,
                  hidden_act="gelu",
@@ -97,7 +92,6 @@ class RoFormerConfig(PretrainedConfig):
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
-        self.num_hidden_groups = num_hidden_groups
         self.num_attention_heads = num_attention_heads
 
         self.hidden_act = hidden_act
