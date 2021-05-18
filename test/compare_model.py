@@ -29,8 +29,7 @@ bert4keras_outputs = torch.tensor(model(tf_inputs, training=False).numpy())
 
 # pt
 roformer_tokenizer = RoFormerTokenizer.from_pretrained(converted_ckpt_path)
-pt_model = RoFormerModel.from_pretrained(converted_ckpt_path,
-                                         add_pooling_layer=False)
+pt_model = RoFormerModel.from_pretrained(converted_ckpt_path)
 pt_inputs = roformer_tokenizer(text, return_tensors="pt")
 with torch.no_grad():
     pt_outputs = pt_model(**pt_inputs).last_hidden_state
