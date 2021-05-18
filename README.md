@@ -15,7 +15,13 @@ pip install git+https://github.com/JunnYu/RoFormer_pytorch.git
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_small
+
 https://huggingface.co/junnyu/roformer_chinese_base
+
+### 使用electra的训练方法在openwebtext上训练的模型（rotary value = True） 
+https://huggingface.co/junnyu/roformer_small_generator
+
+https://huggingface.co/junnyu/roformer_small_discriminator
 
 ## 使用
 ```python
