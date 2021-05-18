@@ -2,7 +2,7 @@
 # There's no way to ignore "F401 '...' imported but unused" warnings in this
 # module, but to preserve other warnings. So, don't check this module at all.
 
-# Copyright 2020 The HuggingFace Team. All rights reserved.
+# Copyright 2021 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,67 +17,59 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from transformers.file_utils import (
-    _BaseLazyModule,
-    is_tf_available,
-    is_torch_available,
-)
+from transformers.file_utils import _BaseLazyModule, is_tf_available, is_tokenizers_available, is_torch_available
+
 
 _import_structure = {
-    "configuration_roformer":
-    ["ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP", "RoFormerConfig"],
-    "tokenization_roformer": ["RoFormerTokenizer", "CustomBasicTokenizer"],
+    "configuration_roformer": ["ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP", "RoFormerConfig"],
+    "tokenization_roformer": ["RoFormerTokenizer"],
 }
 
 if is_torch_available():
     _import_structure["modeling_roformer"] = [
         "ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST",
+        "RoFormerForCausalLM",
         "RoFormerForMaskedLM",
         "RoFormerForMultipleChoice",
-        "RoFormerForNextSentencePrediction",
-        "RoFormerForPreTraining",
         "RoFormerForQuestionAnswering",
         "RoFormerForSequenceClassification",
         "RoFormerForTokenClassification",
         "RoFormerLayer",
-        "RoFormerLMHeadModel",
         "RoFormerModel",
         "RoFormerPreTrainedModel",
         "load_tf_weights_in_roformer",
     ]
 
+
 if is_tf_available():
     _import_structure["modeling_tf_roformer"] = [
         "TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST",
-        "TFRoFormerEmbeddings",
+        "TFRoFormerForCausalLM",
         "TFRoFormerForMaskedLM",
         "TFRoFormerForMultipleChoice",
-        "TFRoFormerForNextSentencePrediction",
-        "TFRoFormerForPreTraining",
         "TFRoFormerForQuestionAnswering",
         "TFRoFormerForSequenceClassification",
         "TFRoFormerForTokenClassification",
-        "TFRoFormerLMHeadModel",
-        "TFRoFormerMainLayer",
+        "TFRoFormerLayer",
         "TFRoFormerModel",
         "TFRoFormerPreTrainedModel",
     ]
+
+
 if TYPE_CHECKING:
     from .configuration_roformer import ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP, RoFormerConfig
-    from .tokenization_roformer import CustomBasicTokenizer, RoFormerTokenizer
+    from .tokenization_roformer import RoFormerTokenizer
 
     if is_torch_available():
         from .modeling_roformer import (
             ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST,
+            RoFormerForCausalLM,
             RoFormerForMaskedLM,
             RoFormerForMultipleChoice,
-            RoFormerForNextSentencePrediction,
-            RoFormerForPreTraining,
             RoFormerForQuestionAnswering,
             RoFormerForSequenceClassification,
             RoFormerForTokenClassification,
             RoFormerLayer,
-            RoFormerLMHeadModel,
             RoFormerModel,
             RoFormerPreTrainedModel,
             load_tf_weights_in_roformer,
@@ -86,19 +78,17 @@ if TYPE_CHECKING:
     if is_tf_available():
         from .modeling_tf_roformer import (
             TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST,
-            TFRoFormerEmbeddings,
+            TFRoFormerForCausalLM,
             TFRoFormerForMaskedLM,
             TFRoFormerForMultipleChoice,
-            TFRoFormerForNextSentencePrediction,
-            TFRoFormerForPreTraining,
             TFRoFormerForQuestionAnswering,
             TFRoFormerForSequenceClassification,
             TFRoFormerForTokenClassification,
-            TFRoFormerLMHeadModel,
-            TFRoFormerMainLayer,
+            TFRoFormerLayer,
             TFRoFormerModel,
             TFRoFormerPreTrainedModel,
         )
+
 
 else:
     import importlib

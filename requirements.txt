@@ -1,6 +1,7 @@
 git+https://github.com/lonePatient/TorchBlocks.git
 transformers>=4.5.0
 bert4keras
+rjieba
 jieba
 scikit-learn
 numpy
