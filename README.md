@@ -7,11 +7,9 @@
 - [chinese_roformer_small.zip](https://pan.baidu.com/s/1Cx7lhtojTyRF61IKHWXEHw) (提取码：8znw)
 - [chinese_roformer_base.zip](https://pan.baidu.com/s/10W5BYDQSeLyajTWjexZeoQ) (提取码：bimr)
 
-## 安装
+## 安装(代码已经加入到huggingface仓库)
 ```bash
-pip install roformer
-或者
-pip install git+https://github.com/JunnYu/RoFormer_pytorch.git
+pip install -U transformers
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_small
@@ -26,7 +24,7 @@ https://huggingface.co/junnyu/roformer_small_discriminator
 ## 使用
 ```python
 import torch
-from roformer import RoFormerModel, RoFormerTokenizer, TFRoFormerModel
+from transformers import RoFormerModel, RoFormerTokenizer, TFRoFormerModel
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
 pt_model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
 tf_model = TFRoFormerModel.from_pretrained("junnyu/roformer_chinese_base",
@@ -44,7 +42,7 @@ print(tf_outputs.shape)
 ```python
 import torch
 import tensorflow as tf
-from roformer import RoFormerForMaskedLM, RoFormerTokenizer, TFRoFormerForMaskedLM
+from transformers import RoFormerForMaskedLM, RoFormerTokenizer, TFRoFormerForMaskedLM
 text = "今天[MASK]很好，我[MASK]去公园玩。"
 tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
 pt_model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
