@@ -9,7 +9,7 @@
 
 ## 安装(代码已经加入到huggingface仓库)
 ```bash
-pip install -U transformers
+pip install git+https://github.com/huggingface/transformers.git
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_small
