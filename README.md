@@ -8,7 +8,7 @@
 - [chinese_roformer_small.zip](https://pan.baidu.com/s/1Cx7lhtojTyRF61IKHWXEHw) (提取码：8znw)
 - [chinese_roformer_base.zip](https://pan.baidu.com/s/10W5BYDQSeLyajTWjexZeoQ) (提取码：bimr)
 - [chinese_roformer_char_base.zip](https://pan.baidu.com/s/18bgJ1t_1ke0BXq_Xg02qSQ) (提取码：oqb5)
-- 
+
 ## 安装(代码已经加入到huggingface仓库)
 ```bash
 pip install git+https://github.com/huggingface/transformers.git
