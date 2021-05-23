@@ -2,11 +2,13 @@
 原版Tensorflow权重(https://github.com/ZhuiyiTechnology/roformer)
 - [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (提取码：xy9x)
 - [chinese_roformer_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1iIXgZHHCgrYGXVRRSSCVPg) (提取码：gy97)
+- [chinese_roformer-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1Q1pq8F4Fsl6bTipUAkqeDQ) (提取码：bt94)
 
 已经转化为PyTorch权重
 - [chinese_roformer_small.zip](https://pan.baidu.com/s/1Cx7lhtojTyRF61IKHWXEHw) (提取码：8znw)
 - [chinese_roformer_base.zip](https://pan.baidu.com/s/10W5BYDQSeLyajTWjexZeoQ) (提取码：bimr)
-
+- [chinese_roformer_char_base.zip](https://pan.baidu.com/s/18bgJ1t_1ke0BXq_Xg02qSQ) (提取码：oqb5)
+- 
 ## 安装(代码已经加入到huggingface仓库)
 ```bash
 pip install git+https://github.com/huggingface/transformers.git
@@ -15,6 +17,8 @@ pip install git+https://github.com/huggingface/transformers.git
 https://huggingface.co/junnyu/roformer_chinese_small
 
 https://huggingface.co/junnyu/roformer_chinese_base
+
+https://huggingface.co/junnyu/roformer_chinese_char_base
 
 ### 使用electra的训练方法在openwebtext上训练的模型（rotary value = True） 
 https://huggingface.co/junnyu/roformer_small_generator
