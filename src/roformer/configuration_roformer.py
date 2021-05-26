@@ -78,7 +78,7 @@ class RoFormerConfig(PretrainedConfig):
         gradient_checkpointing (:obj:`bool`, `optional`, defaults to :obj:`False`):
             If :obj:`True`, use gradient checkpointing to save memory at the expense of slower backward pass.
 
-        Example::
+    Example::
 
         >>> from transformers import RoFormerModel, RoFormerConfig
 
@@ -96,7 +96,7 @@ class RoFormerConfig(PretrainedConfig):
     def __init__(
         self,
         vocab_size=50000,
-        embedding_size=768,
+        embedding_size=None,
         hidden_size=768,
         num_hidden_layers=12,
         num_attention_heads=12,
@@ -117,7 +117,7 @@ class RoFormerConfig(PretrainedConfig):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
 
         self.vocab_size = vocab_size
-        self.embedding_size = embedding_size
+        self.embedding_size = hidden_size if embedding_size is None else embedding_size
         self.hidden_size = hidden_size
         self.num_hidden_layers = num_hidden_layers
         self.num_attention_heads = num_attention_heads
