@@ -10,9 +10,9 @@
 - [chinese_roformer_char_base.zip](https://pan.baidu.com/s/18bgJ1t_1ke0BXq_Xg02qSQ) (提取码：oqb5)
 
 ## 安装(代码已经加入到huggingface仓库)
-由于transformers v4.7版本还没发布，要想使用roformer请先安装huggingface/transformers master分支的代码，方法如下
+transformers v4.7版本已经发布，可以直接安装使用
 ```bash
-pip install git+https://github.com/huggingface/transformers.git
+pip install transformers
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_small
