@@ -12,7 +12,7 @@
 ## 安装(代码已经加入到huggingface仓库)
 transformers v4.7版本已经发布，可以直接安装使用
 ```bash
-pip install transformers
+pip install -U transformers
 ```
 ## huggingface.co
 https://huggingface.co/junnyu/roformer_chinese_small
