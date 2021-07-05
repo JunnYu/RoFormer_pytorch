@@ -19,11 +19,14 @@ from typing import TYPE_CHECKING
 
 from transformers.file_utils import _BaseLazyModule, is_tf_available, is_tokenizers_available, is_torch_available
 
-
 _import_structure = {
-    "configuration_roformer": ["ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP", "RoFormerConfig"],
+    "configuration_roformer":
+    ["ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP", "RoFormerConfig"],
     "tokenization_roformer": ["RoFormerTokenizer"],
 }
+
+if is_tokenizers_available():
+    _import_structure["tokenization_roformer_fast"] = ["RoFormerTokenizerFast"]
 
 if is_torch_available():
     _import_structure["modeling_roformer"] = [
@@ -40,7 +43,6 @@ if is_torch_available():
         "load_tf_weights_in_roformer",
     ]
 
-
 if is_tf_available():
     _import_structure["modeling_tf_roformer"] = [
         "TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST",
@@ -55,10 +57,12 @@ if is_tf_available():
         "TFRoFormerPreTrainedModel",
     ]
 
-
 if TYPE_CHECKING:
     from .configuration_roformer import ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP, RoFormerConfig
     from .tokenization_roformer import RoFormerTokenizer
+
+    if is_tokenizers_available():
+        from .tokenization_roformer_fast import RoFormerTokenizerFast
 
     if is_torch_available():
         from .modeling_roformer import (
@@ -88,7 +92,6 @@ if TYPE_CHECKING:
             TFRoFormerModel,
             TFRoFormerPreTrainedModel,
         )
-
 
 else:
     import importlib

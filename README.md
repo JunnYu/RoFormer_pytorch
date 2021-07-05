@@ -104,11 +104,11 @@ max diff : tensor(3.5763e-06)
 base版本
 python compare_model.py
 bert4keras vs pytorch
-mean diff : tensor(4.3925e-07)
-max diff : tensor(7.6294e-06)
+mean diff : tensor(4.3340e-07)
+max diff : tensor(5.7220e-06)
 bert4keras vs tf2.0
-mean diff : tensor(3.4151e-07)
-max diff : tensor(3.8147e-06)
+mean diff : tensor(3.4319e-07)
+max diff : tensor(5.2452e-06)
 ```
 
 

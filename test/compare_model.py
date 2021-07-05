@@ -3,7 +3,7 @@ import jieba
 import tensorflow as tf
 from bert4keras.tokenizers import Tokenizer
 from bert4keras.models import build_transformer_model
-from roformer import RoFormerModel, RoFormerTokenizer, TFRoFormerModel
+from roformer import RoFormerModel, RoFormerTokenizerFast, TFRoFormerModel
 
 jieba.initialize()
 config_path = 'E:/BaiduNetdiskDownload/chinese_roformer_L-12_H-768_A-12/bert_config.json'
@@ -28,7 +28,7 @@ model = build_transformer_model(config_path=config_path,
 bert4keras_outputs = torch.tensor(model(tf_inputs, training=False).numpy())
 
 # pt
-roformer_tokenizer = RoFormerTokenizer.from_pretrained(converted_ckpt_path)
+roformer_tokenizer = RoFormerTokenizerFast.from_pretrained(converted_ckpt_path)
 pt_model = RoFormerModel.from_pretrained(converted_ckpt_path)
 pt_inputs = roformer_tokenizer(text, return_tensors="pt")
 with torch.no_grad():
