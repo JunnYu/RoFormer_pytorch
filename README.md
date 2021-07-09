@@ -3,6 +3,9 @@
 - [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (提取码：xy9x)
 - [chinese_roformer_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1iIXgZHHCgrYGXVRRSSCVPg) (提取码：gy97)
 - [chinese_roformer-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1Q1pq8F4Fsl6bTipUAkqeDQ) (提取码：bt94)
+- [chinese_roformer-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1cc281-M0Rsjlwws5phqzbQ)(提取码：a44c)
+- [chinese_roformer-sim-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1f1FB288nv1a6jYjsNCordg)(提取码：2cgz)
+- [chinese_roformer-sim-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1r0eJ7shGwQ0RzV9BTFFW4g)(提取码：h68q)
 
 已经转化为PyTorch权重
 - [chinese_roformer_small.zip](https://pan.baidu.com/s/1Cx7lhtojTyRF61IKHWXEHw) (提取码：8znw)
@@ -15,11 +18,18 @@ transformers v4.7版本已经发布，可以直接安装使用
 pip install -U transformers
 ```
 ## huggingface.co
-https://huggingface.co/junnyu/roformer_chinese_small
 
-https://huggingface.co/junnyu/roformer_chinese_base
+- https://huggingface.co/junnyu/roformer_chinese_base [chinese_roformer_L-12_H-768_A-12.zip]
 
-https://huggingface.co/junnyu/roformer_chinese_char_base
+- https://huggingface.co/junnyu/roformer_chinese_small [chinese_roformer_L-6_H-384_A-6.zip]
+
+- https://huggingface.co/junnyu/roformer_chinese_char_base [chinese_roformer-char_L-12_H-768_A-12.zip]
+
+- https://huggingface.co/junnyu/roformer_chinese_char_small [chinese_roformer-char_L-6_H-384_A-6.zip]
+
+- https://huggingface.co/junnyu/roformer_chinese_sim_char_base [chinese_roformer-sim-char_L-12_H-768_A-12.zip]
+
+- https://huggingface.co/junnyu/roformer_chinese_sim_char_small [chinese_roformer-sim-char_L-6_H-384_A-6.zip]
 
 ### 使用electra的训练方法在openwebtext上训练的模型（rotary value = True） 
 https://huggingface.co/junnyu/roformer_small_generator
