@@ -19,8 +19,7 @@ import argparse
 import torch
 from transformers.utils import logging
 
-from roformer import (RoFormerConfig, RoFormerForMaskedLM,
-                      load_tf_weights_in_roformer)
+from roformer import RoFormerConfig, RoFormerForMaskedLM, load_tf_weights_in_roformer
 
 logging.set_verbosity_info()
 

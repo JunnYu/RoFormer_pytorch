@@ -5,12 +5,20 @@ from torchblocks.callback import TrainLogger
 from torchblocks.metrics import Accuracy
 from torchblocks.processor import InputExample, TextClassifierProcessor
 from torchblocks.trainer import TextClassifierTrainer
-from torchblocks.utils import (build_argparse, dict_to_text, get_checkpoints,
-                               prepare_device, seed_everything)
+from torchblocks.utils import (
+    build_argparse,
+    dict_to_text,
+    get_checkpoints,
+    prepare_device,
+    seed_everything,
+)
 from transformers import WEIGHTS_NAME
 
-from roformer import (RoFormerConfig, RoFormerForSequenceClassification,
-                      RoFormerTokenizer)
+from roformer import (
+    RoFormerConfig,
+    RoFormerForSequenceClassification,
+    RoFormerTokenizer,
+)
 
 MODEL_CLASSES = {
     "roformer": (RoFormerConfig, RoFormerForSequenceClassification, RoFormerTokenizer)

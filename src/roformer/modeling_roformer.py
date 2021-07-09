@@ -24,20 +24,29 @@ import torch.utils.checkpoint
 from torch import nn
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers.activations import ACT2FN
-from transformers.file_utils import (add_code_sample_docstrings,
-                                     add_start_docstrings,
-                                     add_start_docstrings_to_model_forward,
-                                     replace_return_docstrings)
+from transformers.file_utils import (
+    add_code_sample_docstrings,
+    add_start_docstrings,
+    add_start_docstrings_to_model_forward,
+    replace_return_docstrings,
+)
 from transformers.modeling_outputs import (
     BaseModelOutputWithPastAndCrossAttentions,
     BaseModelOutputWithPoolingAndCrossAttentions,
-    CausalLMOutputWithCrossAttentions, MaskedLMOutput,
-    MultipleChoiceModelOutput, QuestionAnsweringModelOutput,
-    SequenceClassifierOutput, TokenClassifierOutput)
-from transformers.modeling_utils import (PreTrainedModel, SequenceSummary,
-                                         apply_chunking_to_forward,
-                                         find_pruneable_heads_and_indices,
-                                         prune_linear_layer)
+    CausalLMOutputWithCrossAttentions,
+    MaskedLMOutput,
+    MultipleChoiceModelOutput,
+    QuestionAnsweringModelOutput,
+    SequenceClassifierOutput,
+    TokenClassifierOutput,
+)
+from transformers.modeling_utils import (
+    PreTrainedModel,
+    SequenceSummary,
+    apply_chunking_to_forward,
+    find_pruneable_heads_and_indices,
+    prune_linear_layer,
+)
 from transformers.utils import logging
 
 from .configuration_roformer import RoFormerConfig
@@ -875,7 +884,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
     input to the forward pass.
     """
 
-    def __init__(self, config, add_pooling_layer=True):
+    def __init__(self, config, add_pooling_layer=False):
         super().__init__(config)
         self.config = config
         self.embeddings = RoFormerEmbeddings(config)
@@ -1074,7 +1083,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
                 "bi-directional self-attention."
             )
 
-        self.roformer = RoFormerModel(config)
+        self.roformer = RoFormerModel(config, add_pooling_layer=True)
         self.cls = RoFormerOnlyMLMHead(config)
 
         self.init_weights()
