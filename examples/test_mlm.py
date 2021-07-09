@@ -1,9 +1,9 @@
 import torch
+
 from roformer import RoFormerForMaskedLM, RoFormerTokenizerFast
 
 text = "今天[MASK]很好，我[MASK]去公园玩。"
-tokenizer = RoFormerTokenizerFast.from_pretrained(
-    "junnyu/roformer_chinese_base")
+tokenizer = RoFormerTokenizerFast.from_pretrained("junnyu/roformer_chinese_base")
 model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
 
 inputs = tokenizer(text, return_tensors="pt")
@@ -17,6 +17,7 @@ for i, id in enumerate(tokenizer.encode(text)):
         outputs_sentence += "[" + "||".join(tokens) + "]"
     else:
         outputs_sentence += "".join(
-            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True))
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True)
+        )
 
 print(outputs_sentence)
