@@ -17,24 +17,27 @@ transformers v4.7版本已经发布，可以直接安装使用
 ```bash
 pip install -U transformers
 ```
-## huggingface.co
+## 模型权重对照表
 
-- https://huggingface.co/junnyu/roformer_chinese_base [chinese_roformer_L-12_H-768_A-12.zip]
+### 中文模型
+| huggingface.co                     | bert4keras                                       |
+| ---------------------------------- | ------------------------------------------------ |
+| [roformer_chinese_base](https://huggingface.co/junnyu/roformer_chinese_base)              | [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (download code：xy9x)             |
+| [roformer_chinese_small](https://huggingface.co/junnyu/roformer_chinese_small)             | [chinese_roformer_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1iIXgZHHCgrYGXVRRSSCVPg) (download code：gy97)               |
+| [roformer_chinese_char_base](https://huggingface.co/junnyu/roformer_chinese_char_base)         | [chinese_roformer-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1Q1pq8F4Fsl6bTipUAkqeDQ) (download code：bt94)        |
+| [roformer_chinese_char_small](https://huggingface.co/junnyu/roformer_chinese_char_small)        | [chinese_roformer-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1cc281-M0Rsjlwws5phqzbQ) (download code：a44c)          |
+| [roformer_chinese_sim_char_base](https://huggingface.co/junnyu/roformer_chinese_sim_char_base)     | [chinese_roformer-sim-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1f1FB288nv1a6jYjsNCordg) (download code：2cgz)    |
+| [roformer_chinese_sim_char_small](https://huggingface.co/junnyu/roformer_chinese_sim_char_small)    | [chinese_roformer-sim-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1r0eJ7shGwQ0RzV9BTFFW4g) (download code：h68q)      |
+| [roformer_chinese_sim_char_ft_base](https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_base)  | [chinese_roformer-sim-char-ft_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1Igh3tSvSu_ahDZmGaOlVoA) (download code：w15n) |
+| [roformer_chinese_sim_char_ft_small](https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_small) | [chinese_roformer-sim-char-ft_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1G36x7YQF1b6nzW0OzyJS_Q) (download code：gty5)   |
 
-- https://huggingface.co/junnyu/roformer_chinese_small [chinese_roformer_L-6_H-384_A-6.zip]
 
-- https://huggingface.co/junnyu/roformer_chinese_char_base [chinese_roformer-char_L-12_H-768_A-12.zip]
+### 英文模型（使用electra的训练方法在openwebtext上训练的small模型（rotary value = True）） 
+| huggingface.co                     |
+| ---------------------------------- |
+|[roformer_small_generator](https://huggingface.co/junnyu/roformer_small_generator)|
+|[roformer_small_discriminator](https://huggingface.co/junnyu/roformer_small_discriminator)|
 
-- https://huggingface.co/junnyu/roformer_chinese_char_small [chinese_roformer-char_L-6_H-384_A-6.zip]
-
-- https://huggingface.co/junnyu/roformer_chinese_sim_char_base [chinese_roformer-sim-char_L-12_H-768_A-12.zip]
-
-- https://huggingface.co/junnyu/roformer_chinese_sim_char_small [chinese_roformer-sim-char_L-6_H-384_A-6.zip]
-
-### 使用electra的训练方法在openwebtext上训练的模型（rotary value = True） 
-https://huggingface.co/junnyu/roformer_small_generator
-
-https://huggingface.co/junnyu/roformer_small_discriminator
 
 ## 使用
 ```python
