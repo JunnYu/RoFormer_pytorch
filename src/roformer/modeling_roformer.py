@@ -884,7 +884,7 @@ class RoFormerModel(RoFormerPreTrainedModel):
     input to the forward pass.
     """
 
-    def __init__(self, config, add_pooling_layer=False):
+    def __init__(self, config, add_pooling_layer=True):
         super().__init__(config)
         self.config = config
         self.embeddings = RoFormerEmbeddings(config)
@@ -1083,7 +1083,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
                 "bi-directional self-attention."
             )
 
-        self.roformer = RoFormerModel(config, add_pooling_layer=True)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.cls = RoFormerOnlyMLMHead(config)
 
         self.init_weights()
@@ -1204,7 +1204,7 @@ class RoFormerForCausalLM(RoFormerPreTrainedModel):
                 "If you want to use `RoFormerForCausalLM` as a standalone, add `is_decoder=True.`"
             )
 
-        self.roformer = RoFormerModel(config)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.cls = RoFormerOnlyMLMHead(config)
 
         self.init_weights()
@@ -1388,7 +1388,7 @@ class RoFormerForSequenceClassification(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.roformer = RoFormerModel(config)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.classifier = RoFormerClassificationHead(config)
 
         self.init_weights()
@@ -1471,7 +1471,7 @@ class RoFormerForMultipleChoice(RoFormerPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
 
-        self.roformer = RoFormerModel(config)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.sequence_summary = SequenceSummary(config)
         self.classifier = nn.Linear(config.hidden_size, 1)
 
@@ -1577,7 +1577,7 @@ class RoFormerForTokenClassification(RoFormerPreTrainedModel):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.roformer = RoFormerModel(config)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
 
@@ -1671,7 +1671,7 @@ class RoFormerForQuestionAnswering(RoFormerPreTrainedModel):
         config.num_labels = 2
         self.num_labels = config.num_labels
 
-        self.roformer = RoFormerModel(config)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
 
         self.init_weights()
