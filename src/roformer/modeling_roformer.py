@@ -1083,7 +1083,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
                 "bi-directional self-attention."
             )
 
-        self.roformer = RoFormerModel(config, add_pooling_layer=False)
+        self.roformer = RoFormerModel(config, add_pooling_layer=True)
         self.cls = RoFormerOnlyMLMHead(config)
 
         self.init_weights()
