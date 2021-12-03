@@ -14,8 +14,8 @@
 # limitations under the License.
 """ RoFormer model configuration """
 
-from transformers.configuration_utils import PretrainedConfig
-from transformers.utils import logging
+from .transformers.configuration_utils import PretrainedConfig
+from .transformers.utils import logging
 
 logger = logging.get_logger(__name__)
 
@@ -36,18 +36,16 @@ class RoFormerConfig(PretrainedConfig):
     instantiate an RoFormer model according to the specified arguments, defining the model architecture. Instantiating
     a configuration with the defaults will yield a similar configuration to that of the RoFormer
     `junnyu/roformer_chinese_base <https://huggingface.co/junnyu/roformer_chinese_base>`__ architecture.
-
     Configuration objects inherit from :class:`~transformers.PretrainedConfig` and can be used to control the model
     outputs. Read the documentation from :class:`~transformers.PretrainedConfig` for more information.
-
-
     Args:
         vocab_size (:obj:`int`, `optional`, defaults to 50000):
             Vocabulary size of the RoFormer model. Defines the number of different tokens that can be represented by
             the :obj:`inputs_ids` passed when calling :class:`~transformers.RoFormerModel` or
             :class:`~transformers.TFRoFormerModel`.
         embedding_size (:obj:`int`, `optional`, defaults to None):
-            Dimensionality of the encoder layers and the pooler layer.
+            Dimensionality of the encoder layers and the pooler layer. Defaults to the :obj:`hidden_size` if not
+            provided.
         hidden_size (:obj:`int`, `optional`, defaults to 768):
             Dimension of the encoder layers and the pooler layer.
         num_hidden_layers (:obj:`int`, `optional`, defaults to 12):
@@ -78,19 +76,12 @@ class RoFormerConfig(PretrainedConfig):
             relevant if ``config.is_decoder=True``.
         rotary_value (:obj:`bool`, `optional`, defaults to :obj:`False`):
             Whether or not apply rotary position embeddings on value layer.
-        gradient_checkpointing (:obj:`bool`, `optional`, defaults to :obj:`False`):
-            If :obj:`True`, use gradient checkpointing to save memory at the expense of slower backward pass.
-
     Example::
-
         >>> from transformers import RoFormerModel, RoFormerConfig
-
         >>> # Initializing a RoFormer junnyu/roformer_chinese_base style configuration
         >>> configuration = RoFormerConfig()
-
         >>> # Initializing a model from the junnyu/roformer_chinese_base style configuration
         >>> model = RoFormerModel(configuration)
-
         >>> # Accessing the model configuration
         >>> configuration = model.config
     """
@@ -112,7 +103,6 @@ class RoFormerConfig(PretrainedConfig):
         initializer_range=0.02,
         layer_norm_eps=1e-12,
         pad_token_id=0,
-        gradient_checkpointing=False,
         rotary_value=False,
         use_cache=True,
         **kwargs
@@ -132,6 +122,5 @@ class RoFormerConfig(PretrainedConfig):
         self.type_vocab_size = type_vocab_size
         self.initializer_range = initializer_range
         self.layer_norm_eps = layer_norm_eps
-        self.gradient_checkpointing = gradient_checkpointing
         self.rotary_value = rotary_value
         self.use_cache = use_cache

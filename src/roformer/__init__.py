@@ -17,12 +17,13 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from transformers.file_utils import (
+from .transformers.file_utils import (
     _LazyModule,
     is_tf_available,
     is_tokenizers_available,
     is_torch_available,
 )
+
 
 _import_structure = {
     "configuration_roformer": [
@@ -50,6 +51,7 @@ if is_torch_available():
         "load_tf_weights_in_roformer",
     ]
 
+
 if is_tf_available():
     _import_structure["modeling_tf_roformer"] = [
         "TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST",
@@ -63,6 +65,7 @@ if is_tf_available():
         "TFRoFormerModel",
         "TFRoFormerPreTrainedModel",
     ]
+
 
 if TYPE_CHECKING:
     from .configuration_roformer import (
@@ -103,7 +106,10 @@ if TYPE_CHECKING:
             TFRoFormerPreTrainedModel,
         )
 
+
 else:
     import sys
 
-    sys.modules[__name__] = _LazyModule(__name__, globals()["__file__"], _import_structure)
+    sys.modules[__name__] = _LazyModule(
+        __name__, globals()["__file__"], _import_structure
+    )

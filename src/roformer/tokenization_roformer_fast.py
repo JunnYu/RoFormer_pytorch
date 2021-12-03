@@ -18,11 +18,12 @@ from typing import List, Optional, Tuple
 
 from tokenizers import normalizers
 from tokenizers.pre_tokenizers import BertPreTokenizer, PreTokenizer
-from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
-from transformers.utils import logging
 
+from .transformers.tokenization_utils_fast import PreTrainedTokenizerFast
+from .transformers.utils import logging
 from .tokenization_roformer import RoFormerTokenizer
 from .tokenization_utils import JiebaPreTokenizer
+
 
 logger = logging.get_logger(__name__)
 
@@ -48,6 +49,7 @@ PRETRAINED_POSITIONAL_EMBEDDINGS_SIZES = {
     "junnyu/roformer_small_generator": 128,
 }
 
+
 PRETRAINED_INIT_CONFIGURATION = {
     "junnyu/roformer_chinese_small": {"do_lower_case": True},
     "junnyu/roformer_chinese_base": {"do_lower_case": True},
@@ -61,21 +63,16 @@ PRETRAINED_INIT_CONFIGURATION = {
 class RoFormerTokenizerFast(PreTrainedTokenizerFast):
     r"""
     Construct a "fast" RoFormer tokenizer (backed by HuggingFace's `tokenizers` library).
-
     :class:`~transformers.RoFormerTokenizerFast` is almost identical to :class:`~transformers.BertTokenizerFast` and
     runs end-to-end tokenization: punctuation splitting and wordpiece. There are some difference between them when
     tokenizing Chinese.
-
     This tokenizer inherits from :class:`~transformers.PreTrainedTokenizerFast` which contains most of the main
     methods. Users should refer to this superclass for more information regarding those methods.
-
     Example::
-
         >>> from transformers import RoFormerTokenizerFast
         >>> tokenizer = RoFormerTokenizerFast.from_pretrained('junnyu/roformer_chinese_base')
         >>> tokenizer.tokenize("今天天气非常好。")
         # ['今', '天', '天', '气', '非常', '好', '。']
-
     """
 
     vocab_files_names = VOCAB_FILES_NAMES
@@ -140,16 +137,13 @@ class RoFormerTokenizerFast(PreTrainedTokenizerFast):
         """
         Build model inputs from a sequence or a pair of sequence for sequence classification tasks by concatenating and
         adding special tokens. A RoFormer sequence has the following format:
-
         - single sequence: ``[CLS] X [SEP]``
         - pair of sequences: ``[CLS] A [SEP] B [SEP]``
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs to which the special tokens will be added.
             token_ids_1 (:obj:`List[int]`, `optional`):
                 Optional second list of IDs for sequence pairs.
-
         Returns:
             :obj:`List[int]`: List of `input IDs <../glossary.html#input-ids>`__ with the appropriate special tokens.
         """
@@ -166,20 +160,15 @@ class RoFormerTokenizerFast(PreTrainedTokenizerFast):
         """
         Create a mask from the two sequences passed to be used in a sequence-pair classification task. A RoFormer
         sequence pair mask has the following format:
-
         ::
-
             0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
             | first sequence    | second sequence |
-
         If :obj:`token_ids_1` is :obj:`None`, this method only returns the first portion of the mask (0s).
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs.
             token_ids_1 (:obj:`List[int]`, `optional`):
                 Optional second list of IDs for sequence pairs.
-
         Returns:
             :obj:`List[int]`: List of `token type IDs <../glossary.html#token-type-ids>`_ according to the given
             sequence(s).

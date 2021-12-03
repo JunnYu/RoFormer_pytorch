@@ -1,5 +1,5 @@
 git+https://github.com/lonePatient/TorchBlocks.git
-transformers>=4.5.0
+transformers>=4.12.5
 bert4keras
 rjieba
 jieba

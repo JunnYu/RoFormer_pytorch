@@ -18,13 +18,14 @@ import collections
 import os
 from typing import List, Optional, Tuple
 
-from transformers.models.bert.tokenization_bert import (
+from .transformers.tokenization_utils import PreTrainedTokenizer
+from .transformers.utils import logging
+from .transformers.models.bert.tokenization_bert import (
     BasicTokenizer,
     WordpieceTokenizer,
     load_vocab,
 )
-from transformers.tokenization_utils import PreTrainedTokenizer
-from transformers.utils import logging
+
 
 logger = logging.get_logger(__name__)
 
@@ -50,6 +51,7 @@ PRETRAINED_POSITIONAL_EMBEDDINGS_SIZES = {
     "junnyu/roformer_small_generator": 128,
 }
 
+
 PRETRAINED_INIT_CONFIGURATION = {
     "junnyu/roformer_chinese_small": {"do_lower_case": True},
     "junnyu/roformer_chinese_base": {"do_lower_case": True},
@@ -62,11 +64,9 @@ PRETRAINED_INIT_CONFIGURATION = {
 
 class RoFormerTokenizer(PreTrainedTokenizer):
     r"""
-    Construct a RoFormer tokenizer. Based on `Jieba <https://pypi.org/project/jieba/>`.
-
+    Construct a RoFormer tokenizer. Based on `Rust Jieba <https://pypi.org/project/rjieba/>`.
     This tokenizer inherits from :class:`~transformers.PreTrainedTokenizer` which contains most of the main methods.
     Users should refer to this superclass for more information regarding those methods.
-
     Args:
         vocab_file (:obj:`str`):
             File containing the vocabulary.
@@ -94,20 +94,16 @@ class RoFormerTokenizer(PreTrainedTokenizer):
             modeling. This is the token which the model will try to predict.
         tokenize_chinese_chars (:obj:`bool`, `optional`, defaults to :obj:`True`):
             Whether or not to tokenize Chinese characters.
-
             This should likely be deactivated for Japanese (see this `issue
             <https://github.com/huggingface/transformers/issues/328>`__).
         strip_accents: (:obj:`bool`, `optional`):
             Whether or not to strip all accents. If this option is not specified, then it will be determined by the
             value for :obj:`lowercase` (as in the original BERT).
-
     Example::
-
         >>> from transformers import RoFormerTokenizer
         >>> tokenizer = RoFormerTokenizer.from_pretrained('junnyu/roformer_chinese_base')
         >>> tokenizer.tokenize("今天天气非常好。")
         # ['今', '天', '天', '气', '非常', '好', '。']
-
     """
     vocab_files_names = VOCAB_FILES_NAMES
     pretrained_vocab_files_map = PRETRAINED_VOCAB_FILES_MAP
@@ -146,7 +142,7 @@ class RoFormerTokenizer(PreTrainedTokenizer):
         if not os.path.isfile(vocab_file):
             raise ValueError(
                 f"Can't find a vocabulary file at path '{vocab_file}'. To load the vocabulary from a Google pretrained "
-                "model use `tokenizer = RoFormerTokenizer.from_pretrained(PRETRAINED_MODEL_NAME)`"
+                "model use `tokenizer = AutoTokenizer.from_pretrained(PRETRAINED_MODEL_NAME)`"
             )
         self.vocab = load_vocab(vocab_file)
         self.ids_to_tokens = collections.OrderedDict(
@@ -164,13 +160,13 @@ class RoFormerTokenizer(PreTrainedTokenizer):
             vocab=self.vocab, unk_token=self.unk_token
         )
         try:
-            import jieba
+            import rjieba
         except ImportError:
             raise ImportError(
-                "You need to install jieba to use RoFormerTokenizer."
-                "See https://pypi.org/project/jieba/ for installation."
+                "You need to install rjieba to use RoFormerTokenizer. "
+                "See https://pypi.org/project/rjieba/ for installation."
             )
-        self.jieba = jieba
+        self.jieba = rjieba
 
     @property
     def do_lower_case(self):
@@ -187,9 +183,9 @@ class RoFormerTokenizer(PreTrainedTokenizer):
 
     def __setstate__(self, d):
         self.__dict__ = d
-        import jieba
+        import rjieba
 
-        self.jieba = jieba
+        self.jieba = rjieba
 
     def get_vocab(self):
         return dict(self.vocab, **self.added_tokens_encoder)
@@ -197,7 +193,7 @@ class RoFormerTokenizer(PreTrainedTokenizer):
     def _tokenize(self, text, use_jieba=True):
         split_tokens = []
         if use_jieba:
-            for wholword in self.jieba.cut(text, HMM=False):
+            for wholword in self.jieba.cut(text, False):
                 if wholword in self.vocab:
                     split_tokens.append(wholword)
                 else:
@@ -237,16 +233,13 @@ class RoFormerTokenizer(PreTrainedTokenizer):
         """
         Build model inputs from a sequence or a pair of sequence for sequence classification tasks by concatenating and
         adding special tokens. A RoFormer sequence has the following format:
-
         - single sequence: ``[CLS] X [SEP]``
         - pair of sequences: ``[CLS] A [SEP] B [SEP]``
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs to which the special tokens will be added.
             token_ids_1 (:obj:`List[int]`, `optional`):
                 Optional second list of IDs for sequence pairs.
-
         Returns:
             :obj:`List[int]`: List of `input IDs <../glossary.html#input-ids>`__ with the appropriate special tokens.
         """
@@ -265,7 +258,6 @@ class RoFormerTokenizer(PreTrainedTokenizer):
         """
         Retrieve sequence ids from a token list that has no special tokens added. This method is called when adding
         special tokens using the tokenizer ``prepare_for_model`` method.
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs.
@@ -273,7 +265,6 @@ class RoFormerTokenizer(PreTrainedTokenizer):
                 Optional second list of IDs for sequence pairs.
             already_has_special_tokens (:obj:`bool`, `optional`, defaults to :obj:`False`):
                 Whether or not the token list is already formatted with special tokens for the model.
-
         Returns:
             :obj:`List[int]`: A list of integers in the range [0, 1]: 1 for a special token, 0 for a sequence token.
         """
@@ -295,20 +286,15 @@ class RoFormerTokenizer(PreTrainedTokenizer):
         """
         Create a mask from the two sequences passed to be used in a sequence-pair classification task. A RoFormer
         sequence pair mask has the following format:
-
         ::
-
             0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1
             | first sequence    | second sequence |
-
         If :obj:`token_ids_1` is :obj:`None`, this method only returns the first portion of the mask (0s).
-
         Args:
             token_ids_0 (:obj:`List[int]`):
                 List of IDs.
             token_ids_1 (:obj:`List[int]`, `optional`):
                 Optional second list of IDs for sequence pairs.
-
         Returns:
             :obj:`List[int]`: List of `token type IDs <../glossary.html#token-type-ids>`_ according to the given
             sequence(s).

@@ -29,13 +29,13 @@ class JiebaPreTokenizer:
             lowercase=False,
         )
         try:
-            import jieba
+            import rjieba
         except ImportError:
             raise ImportError(
-                "You need to install jieba to use RoFormerTokenizer."
-                "See https://pypi.org/project/jieba/ for installation."
+                "You need to install rjieba to use RoFormerTokenizer. "
+                "See https://pypi.org/project/rjieba/ for installation."
             )
-        self.jieba = jieba
+        self.jieba = rjieba
 
     def jieba_split(
         self, i: int, normalized_string: NormalizedString
@@ -43,7 +43,7 @@ class JiebaPreTokenizer:
         splits = []
 
         # this code slice normalized_string is too slow (6s) but test_alignement_methods can pass
-        for token, start, end in self.jieba.tokenize(str(normalized_string), HMM=False):
+        for token, start, end in self.jieba.tokenize(str(normalized_string), hmm=False):
             if token in self.vocab:
                 splits.append(normalized_string[start:end])
             else:
@@ -55,7 +55,7 @@ class JiebaPreTokenizer:
                         start = end
 
         # this code test_alignement_methods can't pass but fast (300ms)
-        # for token in self.jieba.cut(str(normalized_string), HMM=False):
+        # for token in self.jieba.cut(str(normalized_string), False):
         #     if token in self.vocab:
         #         splits.append(NormalizedString(token))
         #     else:
