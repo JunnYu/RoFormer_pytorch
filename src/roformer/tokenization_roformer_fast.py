@@ -19,8 +19,8 @@ from typing import List, Optional, Tuple
 from tokenizers import normalizers
 from tokenizers.pre_tokenizers import BertPreTokenizer, PreTokenizer
 
-from .transformers.tokenization_utils_fast import PreTrainedTokenizerFast
-from .transformers.utils import logging
+from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
+from transformers.utils import logging
 from .tokenization_roformer import RoFormerTokenizer
 from .tokenization_utils import JiebaPreTokenizer
 

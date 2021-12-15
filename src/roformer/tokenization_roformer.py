@@ -18,9 +18,9 @@ import collections
 import os
 from typing import List, Optional, Tuple
 
-from .transformers.tokenization_utils import PreTrainedTokenizer
-from .transformers.utils import logging
-from .transformers.models.bert.tokenization_bert import (
+from transformers.tokenization_utils import PreTrainedTokenizer
+from transformers.utils import logging
+from transformers.models.bert.tokenization_bert import (
     BasicTokenizer,
     WordpieceTokenizer,
     load_vocab,

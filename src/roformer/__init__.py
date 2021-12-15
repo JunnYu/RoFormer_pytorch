@@ -17,7 +17,7 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
-from .transformers.file_utils import (
+from transformers.file_utils import (
     _LazyModule,
     is_tf_available,
     is_tokenizers_available,

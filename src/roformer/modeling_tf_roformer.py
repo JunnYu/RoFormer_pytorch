@@ -21,14 +21,14 @@ from typing import Dict, Optional, Tuple, Union
 import numpy as np
 import tensorflow as tf
 
-from .transformers.activations_tf import get_tf_activation
-from .transformers.file_utils import (
+from transformers.activations_tf import get_tf_activation
+from transformers.file_utils import (
     MULTIPLE_CHOICE_DUMMY_INPUTS,
     add_code_sample_docstrings,
     add_start_docstrings,
     add_start_docstrings_to_model_forward,
 )
-from .transformers.modeling_tf_outputs import (
+from transformers.modeling_tf_outputs import (
     TFBaseModelOutput,
     TFBaseModelOutputWithPooling,
     TFCausalLMOutput,
@@ -38,7 +38,7 @@ from .transformers.modeling_tf_outputs import (
     TFSequenceClassifierOutput,
     TFTokenClassifierOutput,
 )
-from .transformers.modeling_tf_utils import (
+from transformers.modeling_tf_utils import (
     TFCausalLanguageModelingLoss,
     TFMaskedLanguageModelingLoss,
     TFModelInputType,
@@ -53,7 +53,7 @@ from .transformers.modeling_tf_utils import (
     keras_serializable,
     shape_list,
 )
-from .transformers.utils import logging
+from transformers.utils import logging
 from .configuration_roformer import RoFormerConfig
 
 
