@@ -17,14 +17,13 @@
 
 import math
 import os
-from typing import Optional
+from dataclasses import dataclass
+from typing import Optional, Tuple
 
-import numpy as np
 import torch
 import torch.utils.checkpoint
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
-
 from transformers.activations import ACT2FN
 from transformers.file_utils import (
     add_code_sample_docstrings,
@@ -37,6 +36,7 @@ from transformers.modeling_outputs import (
     BaseModelOutputWithPoolingAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
     MaskedLMOutput,
+    ModelOutput,
     MultipleChoiceModelOutput,
     QuestionAnsweringModelOutput,
     SequenceClassifierOutput,
@@ -50,8 +50,8 @@ from transformers.modeling_utils import (
     prune_linear_layer,
 )
 from transformers.utils import logging
-from .configuration_roformer import RoFormerConfig
 
+from .configuration_roformer import RoFormerConfig
 
 logger = logging.get_logger(__name__)
 
@@ -64,46 +64,45 @@ ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
     "junnyu/roformer_chinese_base",
     "junnyu/roformer_chinese_char_small",
     "junnyu/roformer_chinese_char_base",
+    "junnyu/roformer_chinese_sim_char_small",
+    "junnyu/roformer_chinese_sim_char_base",
+    "junnyu/roformer_chinese_sim_char_ft_small",
+    "junnyu/roformer_chinese_sim_char_ft_base",
     "junnyu/roformer_small_discriminator",
-    "junnyu/roformer_small_generator"
+    "junnyu/roformer_small_generator",
+    "junnyu/roformer_base_wwm_cluecorpussmall"
     # See all RoFormer models at https://huggingface.co/models?filter=roformer
 ]
 
 
-# Copied from transformers.models.marian.modeling_marian.MarianSinusoidalPositionalEmbedding with Marian->RoFormer
 class RoFormerSinusoidalPositionalEmbedding(nn.Embedding):
     """This module produces sinusoidal positional embeddings of any length."""
 
     def __init__(
         self, num_positions: int, embedding_dim: int, padding_idx: Optional[int] = None
     ):
-        super().__init__(num_positions, embedding_dim)
+        super().__init__(num_positions, embedding_dim * 2)
         self.weight = self._init_weight(self.weight)
 
     @staticmethod
     def _init_weight(out: nn.Parameter):
-        """
-        Identical to the XLM create_sinusoidal_embeddings except features are not interleaved. The cos features are in
-        the 2nd half of the vector. [dim // 2:]
-        """
-        n_pos, dim = out.shape
-        position_enc = np.array(
-            [
-                [pos / np.power(10000, 2 * (j // 2) / dim) for j in range(dim)]
-                for pos in range(n_pos)
-            ]
-        )
+        n_pos, raw_dim = out.shape
+        dim = raw_dim // 2
         out.requires_grad = False  # set early to avoid an error in pytorch-1.8+
-        sentinel = dim // 2 if dim % 2 == 0 else (dim // 2) + 1
-        out[:, 0:sentinel] = torch.FloatTensor(np.sin(position_enc[:, 0::2]))
-        out[:, sentinel:] = torch.FloatTensor(np.cos(position_enc[:, 1::2]))
+        position_ids = torch.arange(0, n_pos, dtype=out.dtype).unsqueeze(1)
+        indices = torch.arange(0, dim, 2, dtype=out.dtype).unsqueeze(0)
+        indices = 1 / 10000 ** (indices / dim)
+        sinusoid_inp = torch.matmul(position_ids, indices)
+        sin, cos = sinusoid_inp.sin(), sinusoid_inp.cos()
+        out[:, 0:dim:2] = sin
+        out[:, 1:dim:2] = sin
+        out[:, dim::2] = cos
+        out[:, dim + 1 :: 2] = cos
         out.detach_()
         return out
 
     @torch.no_grad()
-    def forward(self, input_ids_shape: torch.Size, past_key_values_length: int = 0):
-        """`input_ids_shape` is expected to be [bsz x seqlen]."""
-        bsz, seq_len = input_ids_shape[:2]
+    def forward(self, seq_len: int, past_key_values_length: int = 0):
         positions = torch.arange(
             past_key_values_length,
             past_key_values_length + seq_len,
@@ -362,31 +361,27 @@ class RoFormerSelfAttention(nn.Module):
     def apply_rotary_position_embeddings(
         sinusoidal_pos, query_layer, key_layer, value_layer=None
     ):
-        # https://kexue.fm/archives/8265
-        # sin [batch_size, num_heads, sequence_length, embed_size_per_head//2]
-        # cos [batch_size, num_heads, sequence_length, embed_size_per_head//2]
-        sin, cos = sinusoidal_pos.chunk(2, dim=-1)
-        # sin [θ0,θ1,θ2......θd/2-1] -> sin_pos [θ0,θ0,θ1,θ1,θ2,θ2......θd/2-1,θd/2-1]
-        sin_pos = torch.stack([sin, sin], dim=-1).reshape_as(sinusoidal_pos)
-        # cos [θ0,θ1,θ2......θd/2-1] -> cos_pos [θ0,θ0,θ1,θ1,θ2,θ2......θd/2-1,θd/2-1]
-        cos_pos = torch.stack([cos, cos], dim=-1).reshape_as(sinusoidal_pos)
+        sin_pos, cos_pos = sinusoidal_pos
         # rotate_half_query_layer [-q1,q0,-q3,q2......,-qd-1,qd-2]
         rotate_half_query_layer = torch.stack(
-            [-query_layer[..., 1::2], query_layer[..., ::2]], dim=-1
+            [-query_layer[:, :, :, 1::2], query_layer[:, :, :, 0::2]], dim=-1
         ).reshape_as(query_layer)
         query_layer = query_layer * cos_pos + rotate_half_query_layer * sin_pos
+
         # rotate_half_key_layer [-k1,k0,-k3,k2......,-kd-1,kd-2]
         rotate_half_key_layer = torch.stack(
-            [-key_layer[..., 1::2], key_layer[..., ::2]], dim=-1
+            [-key_layer[:, :, :, 1::2], key_layer[:, :, :, 0::2]], dim=-1
         ).reshape_as(key_layer)
         key_layer = key_layer * cos_pos + rotate_half_key_layer * sin_pos
+
         if value_layer is not None:
             # rotate_half_value_layer [-v1,v0,-v3,v2......,-vd-1,vd-2]
             rotate_half_value_layer = torch.stack(
-                [-value_layer[..., 1::2], value_layer[..., ::2]], dim=-1
+                [-value_layer[:, :, :, 1::2], value_layer[:, :, :, 0::2]], dim=-1
             ).reshape_as(value_layer)
             value_layer = value_layer * cos_pos + rotate_half_value_layer * sin_pos
             return query_layer, key_layer, value_layer
+
         return query_layer, key_layer
 
 
@@ -631,9 +626,9 @@ class RoFormerEncoder(nn.Module):
         )
 
         # [sequence_length, embed_size_per_head] -> [batch_size, num_heads, sequence_length, embed_size_per_head]
-        sinusoidal_pos = self.embed_positions(hidden_states.shape[:-1])[
+        sinusoidal_pos = self.embed_positions(hidden_states.shape[1])[
             None, None, :, :
-        ]
+        ].chunk(2, dim=-1)
 
         next_decoder_cache = () if use_cache else None
         for i, layer_module in enumerate(self.layer):
@@ -774,6 +769,18 @@ class RoFormerPooler(nn.Module):
         return pooled_output
 
 
+class RoFormerPreTrainingHeads(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.predictions = RoFormerLMPredictionHead(config)
+        self.seq_relationship = nn.Linear(config.hidden_size, 2)
+
+    def forward(self, sequence_output, pooled_output):
+        prediction_scores = self.predictions(sequence_output)
+        seq_relationship_score = self.seq_relationship(pooled_output)
+        return prediction_scores, seq_relationship_score
+
+
 class RoFormerPreTrainedModel(PreTrainedModel):
     """
     An abstract class to handle weights initialization and a simple interface for downloading and loading pretrained
@@ -860,6 +867,40 @@ ROFORMER_INPUTS_DOCSTRING = r"""
         return_dict (:obj:`bool`, `optional`):
             Whether or not to return a :class:`~transformers.file_utils.ModelOutput` instead of a plain tuple.
 """
+
+
+@dataclass
+class RoFormerForPreTrainingOutput(ModelOutput):
+    """
+    Output type of [`RoFormerForPreTraining`].
+
+    Args:
+        loss (*optional*, returned when `labels` is provided, `torch.FloatTensor` of shape `(1,)`):
+            Total loss as the sum of the masked language modeling loss and the next sequence prediction
+            (classification) loss.
+        prediction_logits (`torch.FloatTensor` of shape `(batch_size, sequence_length, config.vocab_size)`):
+            Prediction scores of the language modeling head (scores for each vocabulary token before SoftMax).
+        seq_relationship_logits (`torch.FloatTensor` of shape `(batch_size, 2)`):
+            Prediction scores of the next sequence prediction (classification) head (scores of True/False continuation
+            before SoftMax).
+        hidden_states (`tuple(torch.FloatTensor)`, *optional*, returned when `output_hidden_states=True` is passed or when `config.output_hidden_states=True`):
+            Tuple of `torch.FloatTensor` (one for the output of the embeddings + one for the output of each layer) of
+            shape `(batch_size, sequence_length, hidden_size)`.
+
+            Hidden-states of the model at the output of each layer plus the initial embedding outputs.
+        attentions (`tuple(torch.FloatTensor)`, *optional*, returned when `output_attentions=True` is passed or when `config.output_attentions=True`):
+            Tuple of `torch.FloatTensor` (one for each layer) of shape `(batch_size, num_heads, sequence_length,
+            sequence_length)`.
+
+            Attentions weights after the attention softmax, used to compute the weighted average in the self-attention
+            heads.
+    """
+
+    loss: Optional[torch.FloatTensor] = None
+    prediction_logits: torch.FloatTensor = None
+    seq_relationship_logits: torch.FloatTensor = None
+    hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+    attentions: Optional[Tuple[torch.FloatTensor]] = None
 
 
 @add_start_docstrings(
@@ -1076,7 +1117,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
                 "bi-directional self-attention."
             )
 
-        self.roformer = RoFormerModel(config, add_pooling_layer=True)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.cls = RoFormerOnlyMLMHead(config)
 
         # Initialize weights and apply final processing
@@ -1761,6 +1802,124 @@ class RoFormerForQuestionAnswering(RoFormerPreTrainedModel):
             loss=total_loss,
             start_logits=start_logits,
             end_logits=end_logits,
+            hidden_states=outputs.hidden_states,
+            attentions=outputs.attentions,
+        )
+
+
+@add_start_docstrings(
+    """
+    RoFormer Model with two heads on top as done during the pretraining: a `masked language modeling` head and a `next
+    sentence prediction (classification)` head.
+    """,
+    ROFORMER_START_DOCSTRING,
+)
+class RoFormerForPreTraining(RoFormerPreTrainedModel):
+    def __init__(self, config):
+        super().__init__(config)
+
+        self.roformer = RoFormerModel(config, add_pooling_layer=True)
+        self.cls = RoFormerPreTrainingHeads(config)
+
+        # Initialize weights and apply final processing
+        self.post_init()
+
+    def get_output_embeddings(self):
+        return self.cls.predictions.decoder
+
+    def set_output_embeddings(self, new_embeddings):
+        self.cls.predictions.decoder = new_embeddings
+
+    @add_start_docstrings_to_model_forward(
+        ROFORMER_INPUTS_DOCSTRING.format("batch_size, sequence_length")
+    )
+    @replace_return_docstrings(
+        output_type=RoFormerForPreTrainingOutput, config_class=_CONFIG_FOR_DOC
+    )
+    def forward(
+        self,
+        input_ids=None,
+        attention_mask=None,
+        token_type_ids=None,
+        head_mask=None,
+        inputs_embeds=None,
+        labels=None,
+        next_sentence_label=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
+    ):
+        r"""
+            labels (`torch.LongTensor` of shape `(batch_size, sequence_length)`, *optional*):
+                Labels for computing the masked language modeling loss. Indices should be in `[-100, 0, ...,
+                config.vocab_size]` (see `input_ids` docstring) Tokens with indices set to `-100` are ignored (masked),
+                the loss is only computed for the tokens with labels in `[0, ..., config.vocab_size]`
+            next_sentence_label (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
+                Labels for computing the next sequence prediction (classification) loss. Input should be a sequence
+                pair (see `input_ids` docstring) Indices should be in `[0, 1]`:
+
+                - 0 indicates sequence B is a continuation of sequence A,
+                - 1 indicates sequence B is a random sequence.
+            kwargs (`Dict[str, any]`, optional, defaults to *{}*):
+                Used to hide legacy arguments that have been deprecated.
+
+        Returns:
+
+        Example:
+
+        ```python
+        >>> from transformers import BertTokenizer, RoFormerForPreTraining
+        >>> import torch
+
+        >>> tokenizer = BertTokenizer.from_pretrained('junnyu/roformer_base_wwm_cluecorpussmall')
+        >>> model = RoFormerForPreTraining.from_pretrained('junnyu/roformer_base_wwm_cluecorpussmall')
+
+        >>> inputs = tokenizer("今天是个好日子！", "心想的事儿都可以成！", return_tensors="pt")
+        >>> outputs = model(**inputs)
+
+        >>> prediction_logits = outputs.prediction_logits
+        >>> seq_relationship_logits = outputs.seq_relationship_logits
+        ```
+        """
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
+
+        outputs = self.roformer(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+            return_dict=return_dict,
+        )
+
+        sequence_output, pooled_output = outputs[:2]
+        prediction_scores, seq_relationship_score = self.cls(
+            sequence_output, pooled_output
+        )
+
+        total_loss = None
+        if labels is not None and next_sentence_label is not None:
+            loss_fct = CrossEntropyLoss()
+            masked_lm_loss = loss_fct(
+                prediction_scores.view(-1, self.config.vocab_size), labels.view(-1)
+            )
+            next_sentence_loss = loss_fct(
+                seq_relationship_score.view(-1, 2), next_sentence_label.view(-1)
+            )
+            total_loss = masked_lm_loss + next_sentence_loss
+
+        if not return_dict:
+            output = (prediction_scores, seq_relationship_score) + outputs[2:]
+            return ((total_loss,) + output) if total_loss is not None else output
+
+        return RoFormerForPreTrainingOutput(
+            loss=total_loss,
+            prediction_logits=prediction_scores,
+            seq_relationship_logits=seq_relationship_score,
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )

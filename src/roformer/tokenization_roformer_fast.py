@@ -18,12 +18,11 @@ from typing import List, Optional, Tuple
 
 from tokenizers import normalizers
 from tokenizers.pre_tokenizers import BertPreTokenizer, PreTokenizer
-
 from transformers.tokenization_utils_fast import PreTrainedTokenizerFast
 from transformers.utils import logging
+
 from .tokenization_roformer import RoFormerTokenizer
 from .tokenization_utils import JiebaPreTokenizer
-
 
 logger = logging.get_logger(__name__)
 
@@ -35,8 +34,14 @@ PRETRAINED_VOCAB_FILES_MAP = {
         "junnyu/roformer_chinese_base": "https://huggingface.co/junnyu/roformer_chinese_base/resolve/main/vocab.txt",
         "junnyu/roformer_chinese_char_small": "https://huggingface.co/junnyu/roformer_chinese_char_small/resolve/main/vocab.txt",
         "junnyu/roformer_chinese_char_base": "https://huggingface.co/junnyu/roformer_chinese_char_base/resolve/main/vocab.txt",
+        "junnyu/roformer_chinese_sim_char_small": "https://huggingface.co/junnyu/roformer_chinese_sim_char_small/resolve/main/vocab.txt",
+        "junnyu/roformer_chinese_sim_char_base": "https://huggingface.co/junnyu/roformer_chinese_sim_char_base/resolve/main/vocab.txt",
+        "junnyu/roformer_chinese_sim_char_ft_small": "https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_small/resolve/main/vocab.txt",
+        "junnyu/roformer_chinese_sim_char_ft_base": "https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_base/resolve/main/vocab.txt",
         "junnyu/roformer_small_discriminator": "https://huggingface.co/junnyu/roformer_small_discriminator/resolve/main/vocab.txt",
         "junnyu/roformer_small_generator": "https://huggingface.co/junnyu/roformer_small_generator/resolve/main/vocab.txt",
+        "junnyu/roformer_base_wwm_cluecorpussmall": "https://huggingface.co/junnyu/roformer_base_wwm_cluecorpussmall/resolve/main/vocab.txt",
+        # See all RoFormer models at https://huggingface.co/models?filter=roformer
     }
 }
 
@@ -45,8 +50,13 @@ PRETRAINED_POSITIONAL_EMBEDDINGS_SIZES = {
     "junnyu/roformer_chinese_base": 1536,
     "junnyu/roformer_chinese_char_small": 512,
     "junnyu/roformer_chinese_char_base": 512,
+    "junnyu/roformer_chinese_sim_char_small": 512,
+    "junnyu/roformer_chinese_sim_char_base": 512,
+    "junnyu/roformer_chinese_sim_char_ft_small": 512,
+    "junnyu/roformer_chinese_sim_char_ft_base": 512,
     "junnyu/roformer_small_discriminator": 128,
     "junnyu/roformer_small_generator": 128,
+    "junnyu/roformer_base_wwm_cluecorpussmall": 512,
 }
 
 
@@ -55,8 +65,13 @@ PRETRAINED_INIT_CONFIGURATION = {
     "junnyu/roformer_chinese_base": {"do_lower_case": True},
     "junnyu/roformer_chinese_char_small": {"do_lower_case": True},
     "junnyu/roformer_chinese_char_base": {"do_lower_case": True},
+    "junnyu/roformer_chinese_sim_char_small": {"do_lower_case": True},
+    "junnyu/roformer_chinese_sim_char_base": {"do_lower_case": True},
+    "junnyu/roformer_chinese_sim_char_ft_small": {"do_lower_case": True},
+    "junnyu/roformer_chinese_sim_char_ft_base": {"do_lower_case": True},
     "junnyu/roformer_small_discriminator": {"do_lower_case": True},
     "junnyu/roformer_small_generator": {"do_lower_case": True},
+    "junnyu/roformer_base_wwm_cluecorpussmall": {"do_lower_case": True},
 }
 
 

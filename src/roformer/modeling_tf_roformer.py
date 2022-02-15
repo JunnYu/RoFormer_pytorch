@@ -20,7 +20,6 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-
 from transformers.activations_tf import get_tf_activation
 from transformers.file_utils import (
     MULTIPLE_CHOICE_DUMMY_INPUTS,
@@ -54,8 +53,8 @@ from transformers.modeling_tf_utils import (
     shape_list,
 )
 from transformers.utils import logging
-from .configuration_roformer import RoFormerConfig
 
+from .configuration_roformer import RoFormerConfig
 
 logger = logging.get_logger(__name__)
 
@@ -63,13 +62,18 @@ _CHECKPOINT_FOR_DOC = "junnyu/roformer_chinese_base"
 _CONFIG_FOR_DOC = "RoFormerConfig"
 _TOKENIZER_FOR_DOC = "RoFormerTokenizer"
 
-TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
+ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
     "junnyu/roformer_chinese_small",
     "junnyu/roformer_chinese_base",
     "junnyu/roformer_chinese_char_small",
     "junnyu/roformer_chinese_char_base",
+    "junnyu/roformer_chinese_sim_char_small",
+    "junnyu/roformer_chinese_sim_char_base",
+    "junnyu/roformer_chinese_sim_char_ft_base",
+    "junnyu/roformer_chinese_sim_char_ft_small",
     "junnyu/roformer_small_discriminator",
-    "junnyu/roformer_small_generator"
+    "junnyu/roformer_small_generator",
+    "junnyu/roformer_base_wwm_cluecorpussmall"
     # See all RoFormer models at https://huggingface.co/models?filter=roformer
 ]
 

@@ -24,7 +24,6 @@ from transformers.file_utils import (
     is_torch_available,
 )
 
-
 _import_structure = {
     "configuration_roformer": [
         "ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP",
@@ -48,6 +47,7 @@ if is_torch_available():
         "RoFormerLayer",
         "RoFormerModel",
         "RoFormerPreTrainedModel",
+        "RoFormerForPreTraining",
         "load_tf_weights_in_roformer",
     ]
 
@@ -83,6 +83,7 @@ if TYPE_CHECKING:
             RoFormerForCausalLM,
             RoFormerForMaskedLM,
             RoFormerForMultipleChoice,
+            RoFormerForPreTraining,
             RoFormerForQuestionAnswering,
             RoFormerForSequenceClassification,
             RoFormerForTokenClassification,
