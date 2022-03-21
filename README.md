@@ -4,7 +4,13 @@ RoFormer模型和RoFormer-V2模型
 ## 更新
 - 2022/03/21 添加`roformer-v2`的权重, 注：必须使用本仓库的代码，不能使用transformers仓库的代码!!!
 
-## 安装(代码已经加入到huggingface仓库)，V2版本需要使用本仓库的代码
+## v2版本安装
+```bash
+pip install roformer>=0.4.0
+# 如果安装不了，说明清华镜像源没有同步，过一会就可以安装。
+```
+
+## v1版本安装(代码已经加入到huggingface仓库)
 transformers v4.7版本已经发布，可以直接安装使用
 ```bash
 pip install -U transformers
