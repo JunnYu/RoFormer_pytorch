@@ -1,25 +1,26 @@
-# PyTorch RoFormer
-原版Tensorflow权重(https://github.com/ZhuiyiTechnology/roformer)
-- [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (提取码：xy9x)
-- [chinese_roformer_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1iIXgZHHCgrYGXVRRSSCVPg) (提取码：gy97)
-- [chinese_roformer-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1Q1pq8F4Fsl6bTipUAkqeDQ) (提取码：bt94)
-- [chinese_roformer-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1cc281-M0Rsjlwws5phqzbQ)(提取码：a44c)
-- [chinese_roformer-sim-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1f1FB288nv1a6jYjsNCordg)(提取码：2cgz)
-- [chinese_roformer-sim-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1r0eJ7shGwQ0RzV9BTFFW4g)(提取码：h68q)
+# PyTorch RoFormer & RoFormer-V2
+RoFormer模型和RoFormer-V2模型
 
-已经转化为PyTorch权重
-- [chinese_roformer_small.zip](https://pan.baidu.com/s/1Cx7lhtojTyRF61IKHWXEHw) (提取码：8znw)
-- [chinese_roformer_base.zip](https://pan.baidu.com/s/10W5BYDQSeLyajTWjexZeoQ) (提取码：bimr)
-- [chinese_roformer_char_base.zip](https://pan.baidu.com/s/18bgJ1t_1ke0BXq_Xg02qSQ) (提取码：oqb5)
+## 更新
+- 2022/03/21 添加`roformer-v2`的权重, 注：必须使用本仓库的代码，不能使用transformers仓库的代码!!!
 
-## 安装(代码已经加入到huggingface仓库)
+## 安装(代码已经加入到huggingface仓库)，V2版本需要使用本仓库的代码
 transformers v4.7版本已经发布，可以直接安装使用
 ```bash
 pip install -U transformers
 ```
+
 ## 模型权重对照表
 
-### 中文模型
+### 中文模型 roformer-v2
+| huggingface.co                     | bert4keras                                       |
+| ---------------------------------- | ------------------------------------------------ |
+| [roformer_v2_chinese_char_small](https://huggingface.co/junnyu/roformer_v2_chinese_char_small)              | [chinese_roformer-v2-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1huUrC9P60Afggo8AfiUcmA) (download code：ttn4)             |
+| [roformer_v2_chinese_char_base](https://huggingface.co/junnyu/roformer_v2_chinese_char_base)              | [chinese_roformer-v2-char_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1qcnN4LVKVe0-mnHlkN3-6Q) (download code：pfoh)               |
+| [roformer_v2_chinese_char_large](https://huggingface.co/junnyu/roformer_v2_chinese_char_large)          | [chinese_roformer-v2-char_L-24_H-1024_A-16.zip](https://pan.baidu.com/s/1QiJWSZrGxn8vek-8myvL6w) (download code：npfv)        |
+
+
+### 中文模型 roformer-v1
 | huggingface.co                     | bert4keras                                       |
 | ---------------------------------- | ------------------------------------------------ |
 | [roformer_chinese_base](https://huggingface.co/junnyu/roformer_chinese_base)              | [chinese_roformer_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1fiss862YsGCwf2HvU_Jm-g) (download code：xy9x)             |
@@ -38,34 +39,19 @@ pip install -U transformers
 |[roformer_small_generator](https://huggingface.co/junnyu/roformer_small_generator)|
 |[roformer_small_discriminator](https://huggingface.co/junnyu/roformer_small_discriminator)|
 
-
-## 使用
-```python
-import torch
-from transformers import RoFormerModel, RoFormerTokenizer, TFRoFormerModel
-tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
-pt_model = RoFormerModel.from_pretrained("junnyu/roformer_chinese_base")
-tf_model = TFRoFormerModel.from_pretrained("junnyu/roformer_chinese_base",
-                                           from_pt=True)
-text = "这里基本保留了唐宋遗留下来的坊巷格局和大量明清古建筑，其中各级文保单位29处，被誉为“里坊制度的活化石”“明清建筑博物馆”！"
-pt_inputs = tokenizer(text, return_tensors="pt")
-tf_inputs = tokenizer(text, return_tensors="tf")
-with torch.no_grad():
-    pt_outputs = pt_model(**pt_inputs).last_hidden_state
-print(pt_outputs.shape)
-tf_outputs = tf_model(**tf_inputs, training=False).last_hidden_state
-print(tf_outputs.shape)
-```
-## MLM测试
+## roformer-v2 MLM测试
 ```python
 import torch
 import tensorflow as tf
-from transformers import RoFormerForMaskedLM, RoFormerTokenizer, TFRoFormerForMaskedLM
+from transformers import BertTokenizer
+from roformer import RoFormerForMaskedLM, TFRoFormerForMaskedLM
+
 text = "今天[MASK]很好，我[MASK]去公园玩。"
-tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
-pt_model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
+tokenizer = BertTokenizer.from_pretrained("junnyu/roformer_v2_chinese_char_base")
+pt_model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_v2_chinese_char_base")
 tf_model = TFRoFormerForMaskedLM.from_pretrained(
-    "junnyu/roformer_chinese_base", from_pt=True)
+    "junnyu/roformer_v2_chinese_char_base", from_pt=True
+)
 pt_inputs = tokenizer(text, return_tensors="pt")
 tf_inputs = tokenizer(text, return_tensors="tf")
 # pytorch
@@ -78,22 +64,74 @@ for i, id in enumerate(tokenizer.encode(text)):
         pt_outputs_sentence += "[" + "||".join(tokens) + "]"
     else:
         pt_outputs_sentence += "".join(
-            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True))
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True)
+        )
 print(pt_outputs_sentence)
 # tf
 tf_outputs = tf_model(**tf_inputs, training=False).logits[0]
 tf_outputs_sentence = "tf: "
 for i, id in enumerate(tokenizer.encode(text)):
     if id == tokenizer.mask_token_id:
-        tokens = tokenizer.convert_ids_to_tokens(
-            tf.math.top_k(tf_outputs[i], k=5)[1])
+        tokens = tokenizer.convert_ids_to_tokens(tf.math.top_k(tf_outputs[i], k=5)[1])
         tf_outputs_sentence += "[" + "||".join(tokens) + "]"
     else:
         tf_outputs_sentence += "".join(
-            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True))
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True)
+        )
+print(tf_outputs_sentence)
+# small
+# pytorch: 今天[的||，||是||很||也]很好，我[要||会||是||想||在]去公园玩。
+# tf: 今天[的||，||是||很||也]很好，我[要||会||是||想||在]去公园玩。
+# base
+# pytorch: 今天[我||天||晴||园||玩]很好，我[想||要||会||就||带]去公园玩。
+# tf: 今天[我||天||晴||园||玩]很好，我[想||要||会||就||带]去公园玩。
+# large
+# pytorch: 今天[天||气||我||空||阳]很好，我[又||想||会||就||爱]去公园玩。
+# tf: 今天[天||气||我||空||阳]很好，我[又||想||会||就||爱]去公园玩。
+```
+
+## roformer-v1 MLM测试
+```python
+import torch
+import tensorflow as tf
+from transformers import RoFormerForMaskedLM, RoFormerTokenizer, TFRoFormerForMaskedLM
+
+text = "今天[MASK]很好，我[MASK]去公园玩。"
+tokenizer = RoFormerTokenizer.from_pretrained("junnyu/roformer_chinese_base")
+pt_model = RoFormerForMaskedLM.from_pretrained("junnyu/roformer_chinese_base")
+tf_model = TFRoFormerForMaskedLM.from_pretrained(
+    "junnyu/roformer_chinese_base", from_pt=True
+)
+pt_inputs = tokenizer(text, return_tensors="pt")
+tf_inputs = tokenizer(text, return_tensors="tf")
+# pytorch
+with torch.no_grad():
+    pt_outputs = pt_model(**pt_inputs).logits[0]
+pt_outputs_sentence = "pytorch: "
+for i, id in enumerate(tokenizer.encode(text)):
+    if id == tokenizer.mask_token_id:
+        tokens = tokenizer.convert_ids_to_tokens(pt_outputs[i].topk(k=5)[1])
+        pt_outputs_sentence += "[" + "||".join(tokens) + "]"
+    else:
+        pt_outputs_sentence += "".join(
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True)
+        )
+print(pt_outputs_sentence)
+# tf
+tf_outputs = tf_model(**tf_inputs, training=False).logits[0]
+tf_outputs_sentence = "tf: "
+for i, id in enumerate(tokenizer.encode(text)):
+    if id == tokenizer.mask_token_id:
+        tokens = tokenizer.convert_ids_to_tokens(tf.math.top_k(tf_outputs[i], k=5)[1])
+        tf_outputs_sentence += "[" + "||".join(tokens) + "]"
+    else:
+        tf_outputs_sentence += "".join(
+            tokenizer.convert_ids_to_tokens([id], skip_special_tokens=True)
+        )
 print(tf_outputs_sentence)
 # pytorch: 今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
 # tf:      今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
+
 ```
  
 ## 手动权重转换

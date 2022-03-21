@@ -69,6 +69,15 @@ ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
     # See all RoFormer models at https://huggingface.co/models?filter=roformer
 ]
 
+class Norm(nn.Module):
+    def __init__(self, eps = 1e-12):
+        super().__init__()
+        self.eps = eps
+
+    def forward(self, x):
+        variance = torch.mean(torch.square(x), dim=-1, keepdim=True)
+        return x / torch.sqrt(variance + self.eps)
+
 
 # Copied from transformers.models.marian.modeling_marian.MarianSinusoidalPositionalEmbedding with Marian->RoFormer
 class RoFormerSinusoidalPositionalEmbedding(nn.Embedding):
@@ -209,7 +218,7 @@ class RoFormerEmbeddings(nn.Module):
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
-        self.LayerNorm = nn.LayerNorm(config.embedding_size, eps=config.layer_norm_eps)
+        self.LayerNorm = nn.LayerNorm(config.embedding_size, eps=config.layer_norm_eps) if config.norm_type=="layer_norm" else Norm(eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, input_ids=None, token_type_ids=None, inputs_embeds=None):
@@ -250,9 +259,9 @@ class RoFormerSelfAttention(nn.Module):
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
 
-        self.query = nn.Linear(config.hidden_size, self.all_head_size)
-        self.key = nn.Linear(config.hidden_size, self.all_head_size)
-        self.value = nn.Linear(config.hidden_size, self.all_head_size)
+        self.query = nn.Linear(config.hidden_size, self.all_head_size, bias=config.use_bias)
+        self.key = nn.Linear(config.hidden_size, self.all_head_size, bias=config.use_bias)
+        self.value = nn.Linear(config.hidden_size, self.all_head_size, bias=config.use_bias)
 
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
 
@@ -394,8 +403,8 @@ class RoFormerSelfAttention(nn.Module):
 class RoFormerSelfOutput(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
-        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.dense = nn.Linear(config.hidden_size, config.hidden_size, bias=config.use_bias)
+        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps) if config.norm_type=="layer_norm" else Norm(eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, hidden_states, input_tensor):
@@ -469,7 +478,7 @@ class RoFormerAttention(nn.Module):
 class RoFormerIntermediate(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
+        self.dense = nn.Linear(config.hidden_size, config.intermediate_size, bias=config.use_bias)
         if isinstance(config.hidden_act, str):
             self.intermediate_act_fn = ACT2FN[config.hidden_act]
         else:
@@ -485,8 +494,8 @@ class RoFormerIntermediate(nn.Module):
 class RoFormerOutput(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
-        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
+        self.dense = nn.Linear(config.intermediate_size, config.hidden_size, bias=config.use_bias)
+        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps) if config.norm_type=="layer_norm" else Norm(eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
     def forward(self, hidden_states, input_tensor):
@@ -726,6 +735,14 @@ class RoFormerPredictionHeadTransform(nn.Module):
         hidden_states = self.LayerNorm(hidden_states)
         return hidden_states
 
+class RoFormerV2LMPredictionHead(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.decoder = nn.Linear(config.embedding_size, config.vocab_size, bias=False)
+
+    def forward(self, hidden_states):
+        return self.decoder(hidden_states)
+
 
 class RoFormerLMPredictionHead(nn.Module):
     def __init__(self, config):
@@ -751,7 +768,7 @@ class RoFormerLMPredictionHead(nn.Module):
 class RoFormerOnlyMLMHead(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.predictions = RoFormerLMPredictionHead(config)
+        self.predictions = RoFormerLMPredictionHead(config) if config.norm_type=="layer_norm" else RoFormerV2LMPredictionHead(config)
 
     def forward(self, sequence_output):
         prediction_scores = self.predictions(sequence_output)
@@ -789,6 +806,7 @@ class RoFormerPreTrainedModel(PreTrainedModel):
         r"roformer\.embeddings_project\.weight",
         r"roformer\.embeddings_project\.bias",
     ]
+    _keys_to_ignore_on_save = ["roformer.encoder.embed_positions.weight"]
 
     def _init_weights(self, module):
         """Initialize the weights"""
@@ -1076,7 +1094,7 @@ class RoFormerForMaskedLM(RoFormerPreTrainedModel):
                 "bi-directional self-attention."
             )
 
-        self.roformer = RoFormerModel(config, add_pooling_layer=True)
+        self.roformer = RoFormerModel(config, add_pooling_layer=False)
         self.cls = RoFormerOnlyMLMHead(config)
 
         # Initialize weights and apply final processing

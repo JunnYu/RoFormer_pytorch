@@ -73,6 +73,15 @@ TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
     # See all RoFormer models at https://huggingface.co/models?filter=roformer
 ]
 
+class Norm(tf.keras.layers.Layer):
+    def __init__(self, epsilon = 1e-12):
+        super().__init__()
+        self.epsilon = epsilon
+
+    def call(self, inputs):
+        variance = tf.reduce_mean(tf.square(inputs), axis=-1, keepdims=True)
+        return inputs / tf.sqrt(variance + self.epsilon)
+
 
 class TFRoFormerSinusoidalPositionalEmbedding(tf.keras.layers.Layer):
     """This module produces sinusoidal positional embeddings of any length."""
@@ -153,7 +162,7 @@ class TFRoFormerEmbeddings(tf.keras.layers.Layer):
         self.embeddings_sum = tf.keras.layers.Add()
         self.LayerNorm = tf.keras.layers.LayerNormalization(
             epsilon=config.layer_norm_eps, name="LayerNorm"
-        )
+        ) if config.norm_type=="layer_norm" else Norm(epsilon=config.layer_norm_eps)
         self.dropout = tf.keras.layers.Dropout(rate=config.hidden_dropout_prob)
 
     def build(self, input_shape: tf.TensorShape):
@@ -226,16 +235,19 @@ class TFRoFormerSelfAttention(tf.keras.layers.Layer):
             units=self.all_head_size,
             kernel_initializer=get_initializer(config.initializer_range),
             name="query",
+            use_bias=config.use_bias
         )
         self.key = tf.keras.layers.Dense(
             units=self.all_head_size,
             kernel_initializer=get_initializer(config.initializer_range),
             name="key",
+            use_bias=config.use_bias
         )
         self.value = tf.keras.layers.Dense(
             units=self.all_head_size,
             kernel_initializer=get_initializer(config.initializer_range),
             name="value",
+            use_bias=config.use_bias
         )
         self.dropout = tf.keras.layers.Dropout(rate=config.attention_probs_dropout_prob)
         self.rotary_value = config.rotary_value
@@ -365,10 +377,11 @@ class TFRoFormerSelfOutput(tf.keras.layers.Layer):
             units=config.hidden_size,
             kernel_initializer=get_initializer(config.initializer_range),
             name="dense",
+            use_bias=config.use_bias
         )
         self.LayerNorm = tf.keras.layers.LayerNormalization(
             epsilon=config.layer_norm_eps, name="LayerNorm"
-        )
+        ) if config.norm_type=="layer_norm" else Norm(epsilon=config.layer_norm_eps)
         self.dropout = tf.keras.layers.Dropout(rate=config.hidden_dropout_prob)
 
     def call(
@@ -427,6 +440,7 @@ class TFRoFormerIntermediate(tf.keras.layers.Layer):
             units=config.intermediate_size,
             kernel_initializer=get_initializer(config.initializer_range),
             name="dense",
+            use_bias=config.use_bias
         )
 
         if isinstance(config.hidden_act, str):
@@ -450,10 +464,11 @@ class TFRoFormerOutput(tf.keras.layers.Layer):
             units=config.hidden_size,
             kernel_initializer=get_initializer(config.initializer_range),
             name="dense",
+            use_bias=config.use_bias
         )
         self.LayerNorm = tf.keras.layers.LayerNormalization(
             epsilon=config.layer_norm_eps, name="LayerNorm"
-        )
+        )  if config.norm_type=="layer_norm" else Norm(epsilon=config.layer_norm_eps)
         self.dropout = tf.keras.layers.Dropout(rate=config.hidden_dropout_prob)
 
     def call(
@@ -608,7 +623,7 @@ class TFRoFormerPredictionHeadTransform(tf.keras.layers.Layer):
 
         self.LayerNorm = tf.keras.layers.LayerNormalization(
             epsilon=config.layer_norm_eps, name="LayerNorm"
-        )
+        )  if config.norm_type=="layer_norm" else Norm(epsilon=config.layer_norm_eps)
 
     def call(self, hidden_states: tf.Tensor) -> tf.Tensor:
         hidden_states = self.dense(inputs=hidden_states)
@@ -670,6 +685,38 @@ class TFRoFormerLMPredictionHead(tf.keras.layers.Layer):
 
         return hidden_states
 
+class TFRoFormerV2LMPredictionHead(tf.keras.layers.Layer):
+    def __init__(
+        self, config: RoFormerConfig, input_embeddings: tf.keras.layers.Layer, **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        self.vocab_size = config.vocab_size
+        self.embedding_size = config.embedding_size
+        # The output weights are the same as the input embeddings, but there is
+        # an output-only bias for each token.
+        self.input_embeddings = input_embeddings
+
+    def get_output_embeddings(self) -> tf.keras.layers.Layer:
+        return self.input_embeddings
+
+    def set_output_embeddings(self, value: tf.Variable):
+        self.input_embeddings.weight = value
+        self.input_embeddings.vocab_size = shape_list(value)[0]
+
+
+    def call(self, hidden_states: tf.Tensor) -> tf.Tensor:
+        seq_length = shape_list(hidden_states)[1]
+        hidden_states = tf.reshape(
+            tensor=hidden_states, shape=[-1, self.embedding_size]
+        )
+        hidden_states = tf.matmul(
+            a=hidden_states, b=self.input_embeddings.weight, transpose_b=True
+        )
+        hidden_states = tf.reshape(
+            tensor=hidden_states, shape=[-1, seq_length, self.vocab_size]
+        )
+        return hidden_states
 
 # Copied from transformers.models.bert.modeling_tf_bert.TFBertMLMHead with Bert->RoFormer
 class TFRoFormerMLMHead(tf.keras.layers.Layer):
@@ -680,7 +727,7 @@ class TFRoFormerMLMHead(tf.keras.layers.Layer):
 
         self.predictions = TFRoFormerLMPredictionHead(
             config, input_embeddings, name="predictions"
-        )
+        ) if config.norm_type == "layer_norm" else TFRoFormerV2LMPredictionHead(config, input_embeddings, name="predictions")
 
     def call(self, sequence_output: tf.Tensor) -> tf.Tensor:
         prediction_scores = self.predictions(hidden_states=sequence_output)
@@ -703,7 +750,7 @@ class TFRoFormerMainLayer(tf.keras.layers.Layer):
         self.embeddings = TFRoFormerEmbeddings(config, name="embeddings")
         if config.embedding_size != config.hidden_size:
             self.embeddings_project = tf.keras.layers.Dense(
-                config.hidden_size, name="embeddings_project"
+                config.hidden_size, name="embeddings_project", use_bias=config.use_bias
             )
 
         self.encoder = TFRoFormerEncoder(config, name="encoder")
@@ -1022,7 +1069,7 @@ class TFRoFormerForMaskedLM(TFRoFormerPreTrainedModel, TFMaskedLanguageModelingL
             )
 
         self.roformer = TFRoFormerMainLayer(
-            config, add_pooling_layer=True, name="roformer"
+            config, add_pooling_layer=False, name="roformer"
         )
         self.mlm = TFRoFormerMLMHead(
             config, input_embeddings=self.roformer.embeddings, name="mlm___cls"

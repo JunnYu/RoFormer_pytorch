@@ -35,10 +35,17 @@ def convert_tf_checkpoint_to_pytorch(
     # Load weights from tf checkpoint
     load_tf_weights_in_roformer(model, config, tf_checkpoint_path)
 
+    # ignore 不保存roformer.encoder.embed_positions.weight
+    _keys_to_ignore_on_save = ["roformer.encoder.embed_positions.weight"]
+    state_dict = model.state_dict()
+    for ignore_key in _keys_to_ignore_on_save:
+        if ignore_key in state_dict.keys():
+            del state_dict[ignore_key]
+            
     # Save pytorch-model
     print(f"Save PyTorch model to {pytorch_dump_path}")
     torch.save(
-        model.state_dict(), pytorch_dump_path, _use_new_zipfile_serialization=False
+        state_dict, pytorch_dump_path, _use_new_zipfile_serialization=False
     )
 
 
