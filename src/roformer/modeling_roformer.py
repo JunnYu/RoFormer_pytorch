@@ -78,11 +78,6 @@ class Norm(nn.Module):
         variance = torch.mean(torch.square(x), dim=-1, keepdim=True)
         return x / torch.sqrt(variance + self.eps)
 
-# From https://github.com/fastai/fastai/blob/master/fastai/layers.py#L281-L284
-def trunc_normal_(x, mean=0., std=1.):
-    "Truncated normal initialization (approximation)"
-    # From https://discuss.pytorch.org/t/implementing-truncated-normal-initializer/4778/12
-    return x.normal_().fmod_(2).mul_(std).add_(mean)
 
 def initializer(tensor, gain=1.0):
     """使用截断正态分布初始化
@@ -93,7 +88,7 @@ def initializer(tensor, gain=1.0):
     else:
         hidden_size = shape[0]
     std = 1.13684723 / hidden_size**0.5 * gain
-    return trunc_normal_(tensor, std=std)
+    return nn.init.trunc_normal_(tensor, std=std)
 
 # Copied from transformers.models.marian.modeling_marian.MarianSinusoidalPositionalEmbedding with Marian->RoFormer
 class RoFormerSinusoidalPositionalEmbedding(nn.Embedding):
