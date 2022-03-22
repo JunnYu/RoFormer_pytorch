@@ -78,6 +78,22 @@ class Norm(nn.Module):
         variance = torch.mean(torch.square(x), dim=-1, keepdim=True)
         return x / torch.sqrt(variance + self.eps)
 
+# From https://github.com/fastai/fastai/blob/master/fastai/layers.py#L281-L284
+def trunc_normal_(x, mean=0., std=1.):
+    "Truncated normal initialization (approximation)"
+    # From https://discuss.pytorch.org/t/implementing-truncated-normal-initializer/4778/12
+    return x.normal_().fmod_(2).mul_(std).add_(mean)
+
+def initializer(tensor, gain=1.0):
+    """使用截断正态分布初始化
+    """
+    shape = tensor.shape
+    if shape[0] > 10000 or shape[0] < 10:
+        hidden_size = shape[1]
+    else:
+        hidden_size = shape[0]
+    std = 1.13684723 / hidden_size**0.5 * gain
+    return trunc_normal_(tensor, std=std)
 
 # Copied from transformers.models.marian.modeling_marian.MarianSinusoidalPositionalEmbedding with Marian->RoFormer
 class RoFormerSinusoidalPositionalEmbedding(nn.Embedding):
@@ -813,13 +829,19 @@ class RoFormerPreTrainedModel(PreTrainedModel):
         if isinstance(module, nn.Linear):
             # Slightly different from the TF version which uses truncated_normal for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
-            if module.bias is not None:
-                module.bias.data.zero_()
+            if self.config.norm_type == "layer_norm":
+                module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+                if module.bias is not None:
+                    module.bias.data.zero_()
+            else:
+                initializer(module.weight.data)
         elif isinstance(module, RoFormerSinusoidalPositionalEmbedding):
             pass
         elif isinstance(module, nn.Embedding):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            if self.config.norm_type == "layer_norm":
+                module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            else:
+                initializer(module.weight.data)
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
         elif isinstance(module, nn.LayerNorm):
