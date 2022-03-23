@@ -211,3 +211,12 @@ Bibtex:
 }
 
 ```
+
+```tex
+@techreport{roformerv2,
+  title={RoFormerV2: A Faster and Better RoFormer - ZhuiyiAI},
+  author={Jianlin Su, Shengfeng Pan, Bo Wen, Yunfeng Liu},
+  year={2022},
+  url="https://github.com/ZhuiyiTechnology/roformer-v2",
+}
+```
