@@ -24,8 +24,16 @@ ROFORMER_PRETRAINED_CONFIG_ARCHIVE_MAP = {
     "junnyu/roformer_chinese_base": "https://huggingface.co/junnyu/roformer_chinese_base/resolve/main/config.json",
     "junnyu/roformer_chinese_char_small": "https://huggingface.co/junnyu/roformer_chinese_char_small/resolve/main/config.json",
     "junnyu/roformer_chinese_char_base": "https://huggingface.co/junnyu/roformer_chinese_char_base/resolve/main/config.json",
+    "junnyu/roformer_chinese_sim_char_small": "https://huggingface.co/junnyu/roformer_chinese_sim_char_small/resolve/main/config.json",
+    "junnyu/roformer_chinese_sim_char_base": "https://huggingface.co/junnyu/roformer_chinese_sim_char_base/resolve/main/config.json",
+    "junnyu/roformer_chinese_sim_char_ft_base": "https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_base/resolve/main/config.json",
+    "junnyu/roformer_chinese_sim_char_ft_small": "https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_small/resolve/main/config.json",
     "junnyu/roformer_small_discriminator": "https://huggingface.co/junnyu/roformer_small_discriminator/resolve/main/config.json",
     "junnyu/roformer_small_generator": "https://huggingface.co/junnyu/roformer_small_generator/resolve/main/config.json",
+    "junnyu/roformer_base_wwm_cluecorpussmall": "https://huggingface.co/junnyu/roformer_base_wwm_cluecorpussmall/resolve/main/config.json",
+    "junnyu/roformer_v2_chinese_char_small": "https://huggingface.co/junnyu/roformer_v2_chinese_char_small/resolve/main/config.json",
+    "junnyu/roformer_v2_chinese_char_base": "https://huggingface.co/junnyu/roformer_v2_chinese_char_base/resolve/main/config.json",
+    "junnyu/roformer_v2_chinese_char_large": "https://huggingface.co/junnyu/roformer_v2_chinese_char_large/resolve/main/config.json",
     # See all RoFormer models at https://huggingface.co/models?filter=roformer
 }
 
@@ -107,6 +115,7 @@ class RoFormerConfig(PretrainedConfig):
         use_cache=True,
         use_bias=True,
         norm_type="layer_norm",
+        pooler_activation="tanh",
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -128,3 +137,4 @@ class RoFormerConfig(PretrainedConfig):
         self.use_cache = use_cache
         self.use_bias = use_bias
         self.norm_type = norm_type
+        self.pooler_activation = pooler_activation

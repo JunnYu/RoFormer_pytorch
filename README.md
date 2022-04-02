@@ -2,18 +2,94 @@
 RoFormer模型和RoFormer-V2模型
 
 ## 更新
-- 2022/03/21 添加`roformer-v2`的权重, 注：必须使用本仓库的代码，不能使用transformers仓库的代码!!!
+- **2022/04/02** 
+（1）修改RoFormerForCausalLM，支持`roformer-sim`并提供相关的例子，请见`examples/test_sim.py`。
+（2）修改`apply_rotary`实现方式，看起来更简单。
+```python
+def apply_rotary(x, sinusoidal_pos):
+    sin, cos = sinusoidal_pos
+    x1, x2 = x[..., 0::2], x[..., 1::2]
+    return torch.cat([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1)
+```
+- **2022/03/21** 添加`roformer-v2`的权重, 注：必须使用本仓库的代码，不能使用transformers仓库的代码!!!
 
-## v2版本安装
+
+## 安装
 ```bash
+# v2版本
 pip install roformer>=0.4.0
-# 如果安装不了，说明清华镜像源没有同步，过一会就可以安装。
+# v1版本(代码已经加入到huggingface仓库，请使用新版本的transformers)
+pip install -U transformers
 ```
 
-## v1版本安装(代码已经加入到huggingface仓库)
-transformers v4.7版本已经发布，可以直接安装使用
-```bash
-pip install -U transformers
+## roformer-sim测试例子
+```python
+import torch
+import numpy as np
+from roformer import RoFormerForCausalLM, RoFormerConfig
+from transformers import BertTokenizer
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+# 可选以下几个。
+# junnyu/roformer_chinese_sim_char_small, junnyu/roformer_chinese_sim_char_base
+# junnyu/roformer_chinese_sim_char_ft_small, roformer_chinese_sim_char_ft_base
+pretrained_model = "junnyu/roformer_chinese_sim_char_base"
+tokenizer = BertTokenizer.from_pretrained(pretrained_model)
+config = RoFormerConfig.from_pretrained(pretrained_model)
+config.is_decoder = True
+config.eos_token_id = tokenizer.sep_token_id
+config.pooler_activation = "linear"
+model = RoFormerForCausalLM.from_pretrained(pretrained_model, config=config)
+model.to(device)
+model.eval()
+
+def gen_synonyms(text, n=100, k=20):
+    ''''含义： 产生sent的n个相似句，然后返回最相似的k个。
+    做法：用seq2seq生成，并用encoder算相似度并排序。
+    '''
+    # 寻找所有相似的句子
+    r = []
+    inputs1 = tokenizer(text, return_tensors="pt")
+    for _ in range(n):
+        inputs1.to(device)
+        output = tokenizer.batch_decode(model.generate(**inputs1, top_p=0.95, do_sample=True, max_length=128), skip_special_tokens=True)[0].replace(" ","").replace(text, "") # 去除空格，去除原始text文本。
+        r.append(output)
+    
+    # 对相似的句子进行排序
+    r = [i for i in set(r) if i != text and len(i) > 0]
+    r = [text] + r
+    inputs2 = tokenizer(r, padding=True, return_tensors="pt")
+    with torch.no_grad():
+        inputs2.to(device)
+        outputs = model(**inputs2)
+        Z = outputs.pooler_output.cpu().numpy()
+    Z /= (Z**2).sum(axis=1, keepdims=True)**0.5
+    argsort = np.dot(Z[1:], -Z[0]).argsort()
+    
+    return [r[i + 1] for i in argsort[:k]]
+
+out = gen_synonyms("广州和深圳哪个好？")
+print(out)
+# ['深圳和广州哪个好？',
+#  '广州和深圳哪个好',
+#  '深圳和广州哪个好',
+#  '深圳和广州哪个比较好。',
+#  '深圳和广州哪个最好？',
+#  '深圳和广州哪个比较好',
+#  '广州和深圳那个比较好',
+#  '深圳和广州哪个更好？',
+#  '深圳与广州哪个好',
+#  '深圳和广州，哪个比较好',
+#  '广州与深圳比较哪个好',
+#  '深圳和广州哪里比较好',
+#  '深圳还是广州比较好？',
+#  '广州和深圳哪个地方好一些？',
+#  '广州好还是深圳好？',
+#  '广州好还是深圳好呢？',
+#  '广州与深圳哪个地方好点？',
+#  '深圳好还是广州好',
+#  '广州好还是深圳好',
+#  '广州和深圳哪个城市好？']
 ```
 
 ## 模型权重对照表
@@ -37,6 +113,8 @@ pip install -U transformers
 | [roformer_chinese_sim_char_small](https://huggingface.co/junnyu/roformer_chinese_sim_char_small)    | [chinese_roformer-sim-char_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1r0eJ7shGwQ0RzV9BTFFW4g) (download code：h68q)      |
 | [roformer_chinese_sim_char_ft_base](https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_base)  | [chinese_roformer-sim-char-ft_L-12_H-768_A-12.zip](https://pan.baidu.com/s/1Igh3tSvSu_ahDZmGaOlVoA) (download code：w15n) |
 | [roformer_chinese_sim_char_ft_small](https://huggingface.co/junnyu/roformer_chinese_sim_char_ft_small) | [chinese_roformer-sim-char-ft_L-6_H-384_A-6.zip](https://pan.baidu.com/s/1G36x7YQF1b6nzW0OzyJS_Q) (download code：gty5)   |
+
+
 
 
 ### 英文模型（使用electra的训练方法在openwebtext上训练的small模型（rotary value = True）） 
@@ -139,7 +217,7 @@ print(tf_outputs_sentence)
 # tf:      今天[天气||天||心情||阳光||空气]很好，我[想||要||打算||准备||喜欢]去公园玩。
 
 ```
- 
+
 ## 手动权重转换
 ```bash
 python convert_roformer_original_tf_checkpoint_to_pytorch.py \
