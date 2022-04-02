@@ -63,13 +63,21 @@ _CHECKPOINT_FOR_DOC = "junnyu/roformer_chinese_base"
 _CONFIG_FOR_DOC = "RoFormerConfig"
 _TOKENIZER_FOR_DOC = "RoFormerTokenizer"
 
-TF_ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
+ROFORMER_PRETRAINED_MODEL_ARCHIVE_LIST = [
     "junnyu/roformer_chinese_small",
     "junnyu/roformer_chinese_base",
     "junnyu/roformer_chinese_char_small",
     "junnyu/roformer_chinese_char_base",
+    "junnyu/roformer_chinese_sim_char_small",
+    "junnyu/roformer_chinese_sim_char_base",
+    "junnyu/roformer_chinese_sim_char_ft_small",
+    "junnyu/roformer_chinese_sim_char_ft_base",
     "junnyu/roformer_small_discriminator",
-    "junnyu/roformer_small_generator"
+    "junnyu/roformer_small_generator",
+    "junnyu/roformer_base_wwm_cluecorpussmall",
+    "junnyu/roformer_v2_chinese_char_small",
+    "junnyu/roformer_v2_chinese_char_base",
+    "junnyu/roformer_v2_chinese_char_large",
     # See all RoFormer models at https://huggingface.co/models?filter=roformer
 ]
 
