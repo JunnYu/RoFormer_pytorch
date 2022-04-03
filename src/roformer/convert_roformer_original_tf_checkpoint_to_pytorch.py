@@ -19,18 +19,26 @@ import argparse
 import torch
 from transformers.utils import logging
 
-from roformer import RoFormerConfig, RoFormerForMaskedLM, load_tf_weights_in_roformer
+from roformer import RoFormerConfig, RoFormerForMaskedLM, RoFormerForCausalLM, load_tf_weights_in_roformer
 
 logging.set_verbosity_info()
 
 
 def convert_tf_checkpoint_to_pytorch(
-    tf_checkpoint_path, bert_config_file, pytorch_dump_path
+    tf_checkpoint_path, bert_config_file, pytorch_dump_path, roformer_sim=False
 ):
     # Initialise PyTorch model
     config = RoFormerConfig.from_json_file(bert_config_file)
     print(f"Building PyTorch model from configuration: {config}")
-    model = RoFormerForMaskedLM(config)
+    
+    if roformer_sim:
+        # 如果转换roformer-sim的话，需要使用RoFormerForCausalLM，这个带有pooler的权重
+        config.is_decoder = True
+        config.eos_token_id = 102
+        config.pooler_activation = "linear"
+        model = RoFormerForCausalLM(config)
+    else:
+        model = RoFormerForMaskedLM(config)
 
     # Load weights from tf checkpoint
     load_tf_weights_in_roformer(model, config, tf_checkpoint_path)
@@ -74,7 +82,12 @@ if __name__ == "__main__":
         required=True,
         help="Path to the output PyTorch model.",
     )
+    parser.add_argument(
+        "--roformer_sim",
+        action="store_true",
+        help="Whether or not roformer-sim.",
+    )
     args = parser.parse_args()
     convert_tf_checkpoint_to_pytorch(
-        args.tf_checkpoint_path, args.bert_config_file, args.pytorch_dump_path
+        args.tf_checkpoint_path, args.bert_config_file, args.pytorch_dump_path, args.roformer_sim
     )

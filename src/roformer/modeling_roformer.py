@@ -402,7 +402,10 @@ class RoFormerSelfAttention(nn.Module):
     def apply_rotary(x, sinusoidal_pos):
         sin, cos = sinusoidal_pos
         x1, x2 = x[..., 0::2], x[..., 1::2]
-        return torch.cat([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1)
+        # 如果是旋转query key的话，下面这个直接cat就行，因为要进行矩阵乘法，最终会在这个维度求和。（只要保持query和key的最后一个dim的每一个位置对应上就可以）
+        # torch.cat([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1)
+        # 如果是旋转value的话，下面这个stack后再flatten才可以，因为训练好的模型最后一个dim是两两之间交替的。
+        return torch.stack([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1).flatten(-2, -1)
 
 # Copied from transformers.models.bert.modeling_bert.BertSelfOutput with Bert->RoFormer
 class RoFormerSelfOutput(nn.Module):
@@ -1327,7 +1330,6 @@ class RoFormerForCausalLM(RoFormerPreTrainedModel):
             >>> model = RoFormerForCausalLM.from_pretrained(pretrained_model, config=config)
             >>> model.to(device)
             >>> model.eval()
-
             >>> def gen_synonyms(text, n=100, k=20):
             >>>     ''''含义： 产生sent的n个相似句，然后返回最相似的k个。
             >>>     做法：用seq2seq生成，并用encoder算相似度并排序。
@@ -1338,8 +1340,7 @@ class RoFormerForCausalLM(RoFormerPreTrainedModel):
             >>>     for _ in range(n):
             >>>         inputs1.to(device)
             >>>         output = tokenizer.batch_decode(model.generate(**inputs1, top_p=0.95, do_sample=True, max_length=128), skip_special_tokens=True)[0].replace(" ","").replace(text, "") # 去除空格，去除原始text文本。
-            >>>         r.append(output)
-                    
+            >>>         r.append(output)     
             >>>     # 对相似的句子进行排序
             >>>     r = [i for i in set(r) if i != text and len(i) > 0]
             >>>     r = [text] + r
@@ -1349,10 +1350,8 @@ class RoFormerForCausalLM(RoFormerPreTrainedModel):
             >>>         outputs = model(**inputs2)
             >>>         Z = outputs.pooler_output.cpu().numpy()
             >>>     Z /= (Z**2).sum(axis=1, keepdims=True)**0.5
-            >>>     argsort = np.dot(Z[1:], -Z[0]).argsort()
-                    
+            >>>     argsort = np.dot(Z[1:], -Z[0]).argsort()    
             >>>     return [r[i + 1] for i in argsort[:k]]
-
             >>> out = gen_synonyms("广州和深圳哪个好？")
             >>> print(out)
             >>> # ['深圳和广州哪个好？',
