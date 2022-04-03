@@ -4,7 +4,7 @@ setup(
     name="roformer",
     package_dir={"": "src"},
     packages=find_packages("src"),
-    version="0.4.2",
+    version="0.4.3",
     license="Apache 2.0",
     description="roformer_pytorch",
     author="Jun Yu",
