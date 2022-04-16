@@ -90,7 +90,7 @@ class Norm(nn.Module):
         return x / torch.sqrt(variance + self.eps)
 
 
-def initializer(tensor, gain=1.0):
+def initializer(tensor, num_hidden_layers=12, order=2, gain=1.0):
     """使用截断正态分布初始化
     """
     shape = tensor.shape
@@ -98,6 +98,7 @@ def initializer(tensor, gain=1.0):
         hidden_size = shape[1]
     else:
         hidden_size = shape[0]
+    gain *= num_hidden_layers**(-1. / order)
     std = 1.13684723 / hidden_size**0.5 * gain
     return nn.init.trunc_normal_(tensor, std=std)
 
@@ -867,14 +868,14 @@ class RoFormerPreTrainedModel(PreTrainedModel):
                 if module.bias is not None:
                     module.bias.data.zero_()
             else:
-                initializer(module.weight.data)
+                initializer(module.weight.data, self.config.num_hidden_layers, order=2, gain=1.0)
         elif isinstance(module, RoFormerSinusoidalPositionalEmbedding):
             pass
         elif isinstance(module, nn.Embedding):
             if self.config.norm_type == "layer_norm":
                 module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
             else:
-                initializer(module.weight.data)
+                initializer(module.weight.data, self.config.num_hidden_layers, order=2, gain=1.0)
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
         elif isinstance(module, nn.LayerNorm):
