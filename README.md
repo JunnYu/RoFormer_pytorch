@@ -2,8 +2,17 @@
 RoFormer模型和RoFormer-V2模型
 
 ## 更新
-- **2022/04/02** 
+- **2022/04/30** 
+
+有个细节需要注意一下，苏神在微调时无论输入是`text`还是`text pair`类型时，`token_type_id`都置为了0。
+
+如果想要使用与苏神保持一致，那么可以在`tokenizer`时候设置`return_token_type_ids=False`，这样模型会在内部处理。
+
+否则对于`text pair`类型时，会返回与`0，1`两种类型的`token_type_id`
+- **2022/04/02**
+ 
 （1）修改RoFormerForCausalLM，支持`roformer-sim`并提供相关的例子，请见`examples/test_sim.py`。
+
 （2）修改`apply_rotary`实现方式，看起来更简单。
 ```python
 def apply_rotary(x, sinusoidal_pos):
@@ -17,7 +26,7 @@ def apply_rotary(x, sinusoidal_pos):
 ## 安装
 ```bash
 # v2版本
-pip install roformer>=0.4.0
+pip install roformer>=0.4.3
 # v1版本(代码已经加入到huggingface仓库，请使用新版本的transformers)
 pip install -U transformers
 ```
