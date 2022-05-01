@@ -4,7 +4,7 @@ RoFormer模型和RoFormer-V2模型
 ## 更新
 - **2022/05/01**
 
-添加`clue分类任务`的代码和排行榜结果，代码在`examples/clue`文件夹，缺少啥依赖安装啥。
+添加`clue分类任务`的代码和排行榜结果，代码在`examples/clue`文件夹，缺少啥依赖安装啥，比如需要这个`pip install -U accelerate`。
 - **2022/04/30** 
 
 有个细节需要注意一下，苏神在微调时无论输入是`text`还是`text pair`类型时，`token_type_id`都置为了0。
