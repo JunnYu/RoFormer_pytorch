@@ -45,10 +45,7 @@ from transformers import (
 from transformers.utils import get_full_repo_name
 from transformers.utils.versions import require_version
 
-from roformer import (
-    RoFormerConfig,
-    RoFormerForSequenceClassification,
-)
+from roformer import RoFormerConfig, RoFormerForSequenceClassification
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +155,7 @@ def parse_args():
     parser.add_argument(
         "--lr_scheduler_type",
         type=SchedulerType,
-        default="constant",
+        default="linear",
         help="The scheduler type to use.",
         choices=[
             "linear",
@@ -217,7 +214,7 @@ def parse_args():
     parser.add_argument(
         "--logging_steps",
         type=int,
-        default=50,
+        default=100,
         help="logging_steps.",
     )
     parser.add_argument(
@@ -361,7 +358,9 @@ def main():
         finetuning_task=args.task_name,
         summary_type="first",
     )
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path, use_fast=not args.use_slow_tokenizer)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model_name_or_path, use_fast=not args.use_slow_tokenizer
+    )
     model = RoFormerForSequenceClassification.from_pretrained(
         args.model_name_or_path,
         from_tf=bool(".ckpt" in args.model_name_or_path),
@@ -505,13 +504,11 @@ def main():
             "weight_decay": 0.0,
         },
     ]
-    optimizer = Adafactor(
-        optimizer_grouped_parameters,
-        lr=args.learning_rate,
-        beta1=0.9,
-        relative_step=False,
+    # optimizer = Adafactor(optimizer_grouped_parameters,
+    #                      lr=args.learning_rate, beta1=0.9, relative_step=False)
+    optimizer = AdamW(
+        optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon
     )
-    # optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
 
     # Scheduler and math around the number of training steps.
     num_update_steps_per_epoch = math.ceil(
@@ -603,9 +600,8 @@ def main():
             # Get the most recent checkpoint
             dirs = [f.name for f in os.scandir(os.getcwd()) if f.is_dir()]
             dirs.sort(key=os.path.getctime)
-            path = dirs[
-                -1
-            ]  # Sorts folders by date modified, most recent checkpoint is the last
+            # Sorts folders by date modified, most recent checkpoint is the last
+            path = dirs[-1]
         # Extract `epoch_{i}` or `step_{i}`
         training_difference = os.path.splitext(path)[0]
 

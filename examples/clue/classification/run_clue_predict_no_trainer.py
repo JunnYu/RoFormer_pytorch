@@ -7,7 +7,7 @@ from accelerate import Accelerator
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from transformers import DataCollatorWithPadding, AutoTokenizer
+from transformers import AutoTokenizer, DataCollatorWithPadding
 
 from roformer import RoFormerForSequenceClassification
 
