@@ -2,6 +2,9 @@
 RoFormer模型和RoFormer-V2模型
 
 ## 更新
+- **2022/05/01**
+
+添加`clue分类任务`的代码和排行榜结果，代码在`examples/clue`文件夹，缺少啥依赖安装啥。
 - **2022/04/30** 
 
 有个细节需要注意一下，苏神在微调时无论输入是`text`还是`text pair`类型时，`token_type_id`都置为了0。
@@ -10,7 +13,7 @@ RoFormer模型和RoFormer-V2模型
 
 否则对于`text pair`类型时，会返回与`0，1`两种类型的`token_type_id`
 - **2022/04/02**
- 
+
 （1）修改RoFormerForCausalLM，支持`roformer-sim`并提供相关的例子，请见`examples/test_sim.py`。
 
 （2）修改`apply_rotary`实现方式，看起来更简单。
@@ -23,7 +26,9 @@ def apply_rotary(x, sinusoidal_pos):
 - **2022/03/21** 添加`roformer-v2`的权重, 注：必须使用本仓库的代码，不能使用transformers仓库的代码!!!
 
 
+
 ## 安装
+
 ```bash
 # v2版本
 pip install roformer>=0.4.3
@@ -31,7 +36,33 @@ pip install roformer>=0.4.3
 pip install -U transformers
 ```
 
-## roformer-sim测试例子
+
+
+## 评测对比
+
+### CLUE榜单分类任务结果，base版本。
+
+|         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl |
+| :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: |
+| BERT | 60.06 | 56.80 | 72.41 | 79.56 | 73.93 | 78.62 | 83.93 |
+| RoBERTa | 60.64 | 58.06 | 74.05 | 81.24 | 76.00 | **87.50** | 84.50 |
+| RoFormer | 60.91 | 57.54 | 73.52 | 80.92 | **76.07** | 86.84 | 84.63 |
+| GAU-α | 61.41 | 57.76 | 74.17** | **81.82** | 75.86 | 79.93 | **85.67** |
+| RoFormerV2<sup>*</sup> | 60.87 | 56.54 | 72.75 | 80.34 | 75.36 | 80.92 | 84.67 |
+| RoFormerV2<sup>*</sup>-pytorch(本仓库代码) | **63.15** | **58.24** | **75.42** | 80.59 | 74.17 |   83.79   | 83.73 |
+
+### Tips:
+
+- 实验环境**RTX 3090**
+
+### leadborad截图
+<p align="center">
+    <img src="figure/clue-roformerv2-classification.jpg" width="100%" />
+</p>
+  
+
+## Roformer-sim测试例子
+
 ```python
 import torch
 import numpy as np
@@ -101,6 +132,8 @@ print(out)
 #  '广州和深圳哪个城市好？']
 ```
 
+
+
 ## 模型权重对照表
 
 ### 中文模型 roformer-v2
@@ -132,7 +165,10 @@ print(out)
 |[roformer_small_generator](https://huggingface.co/junnyu/roformer_small_generator)|
 |[roformer_small_discriminator](https://huggingface.co/junnyu/roformer_small_discriminator)|
 
-## roformer-v2 MLM测试
+
+
+## Roformer-v2 MLM测试
+
 ```python
 import torch
 import tensorflow as tf
@@ -183,7 +219,10 @@ print(tf_outputs_sentence)
 # tf: 今天[天||气||我||空||阳]很好，我[又||想||会||就||爱]去公园玩。
 ```
 
-## roformer-v1 MLM测试
+
+
+## Roformer-v1 MLM测试
+
 ```python
 import torch
 import tensorflow as tf
@@ -227,7 +266,10 @@ print(tf_outputs_sentence)
 
 ```
 
+
+
 ## 手动权重转换
+
 ```bash
 python convert_roformer_original_tf_checkpoint_to_pytorch.py \
     --tf_checkpoint_path=xxxxxx/chinese_roformer_L-12_H-768_A-12/bert_model.ckpt \
@@ -235,7 +277,10 @@ python convert_roformer_original_tf_checkpoint_to_pytorch.py \
     --pytorch_dump_path=pretrained_models/chinese_roformer_base/pytorch_model.bin
 ```
 
+
+
 ## tf与pytorch精度对齐
+
 ```python
 small版本
 bert4keras vs pytorch
@@ -256,20 +301,9 @@ max diff : tensor(5.2452e-06)
 ```
 
 
-## 中文情感分类(chnsenti)
-<p align="center">
-    <img src="figure/loss.png" width="100%" />
-</p>
-
-### 结果
-
-| model | chnsenti  |
-| --------------- | --------- |
-| tensorflow-NEZHA(base-wwm)      | 94.75     |
-| pytorch-NEZHA(base-wwm)         | 94.92     |
-| pytorch-RoFormer(base)          | **95.08** |
 
 ## 参考
+
 https://github.com/pengming617/bert_classification
 
 https://github.com/bojone/bert4keras
@@ -281,6 +315,8 @@ https://github.com/lonePatient/NeZha_Chinese_PyTorch
 https://github.com/lonePatient/TorchBlocks
 
 https://github.com/huggingface/transformers
+
+
 
 ##  Citation
 
