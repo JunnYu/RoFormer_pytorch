@@ -168,9 +168,6 @@ def predict():
                         predictions = predictions[
                             : len(test_dataloader.dataset) - samples_seen
                         ]
-                        references = references[
-                            : len(test_dataloader.dataset) - samples_seen
-                        ]
                     else:
                         samples_seen += references.shape[0]
                 all_predictions.extend(int2str(predictions))

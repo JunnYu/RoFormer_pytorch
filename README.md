@@ -18,10 +18,19 @@ RoFormer模型和RoFormer-V2模型
 
 （2）修改`apply_rotary`实现方式，看起来更简单。
 ```python
-def apply_rotary(x, sinusoidal_pos):
+def apply_rotary(x, sinusoidal_pos=None):
+    if sinusoidal_pos is None:
+        return x
     sin, cos = sinusoidal_pos
+    # x.shape [batch, seq_len, 2]
     x1, x2 = x[..., 0::2], x[..., 1::2]
-    return torch.cat([x1 * cos - x2 * sin, x2 * cos + x1 * sin], dim=-1)
+    # [cos_nθ, -sin_nθ] [x1]
+    # [sin_nθ,  cos_nθ] [x2]
+    # => [x1 * cos_nθ - x2 * sin_nθ, x1 * sin_nθ + x2 * cos_nθ]
+    # 苏神的rotary，使用了下面的计算方法。
+    # return torch.stack([x1 * cos - x2 * sin, x1 * sin + x2 * cos], dim=-1).flatten(-2, -1)
+    # 考虑到矩阵乘法torch.einsum("bhmd,bhnd->bhmn", q, k)，因此可以直接在最后一个维度拼接（无需奇偶交错）
+    return torch.cat([x1 * cos - x2 * sin, x1 * sin + x2 * cos], dim=-1)
 ```
 - **2022/03/21** 添加`roformer-v2`的权重, 注：必须使用本仓库的代码，不能使用transformers仓库的代码!!!
 
