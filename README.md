@@ -53,18 +53,15 @@ pip install -U transformers
 |         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl |
 | :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: |
 | BERT | 60.06 | 56.80 | 72.41 | 79.56 | 73.93 | 78.62 | 83.93 |
-| RoBERTa | 60.64 | 58.06 | 74.05 | **81.24** | 76.00 | 87.50 | 84.50 |
+| RoBERTa | 60.64 | 58.06 | 74.05 | 81.24 | 76.00 | 87.50 | 84.50 |
 | RoFormer | 60.91 | 57.54 | 73.52 | 80.92 | 76.07 | 86.84 | 84.63 |
 | RoFormer-pytorch(本仓库代码) | 60.60 | 57.51 | 74.44 | 80.79 | 75.67 | 86.84 | 84.77 |
 | RoFormerV2<sup>*</sup> | 60.87 | 56.54 | 72.75 | 80.34 | 75.36 | 80.92 | 84.67 |
-| RoFormerV2<sup>*</sup>-pytorch(本仓库代码) | **62.87** | **59.03** | **76.20** | 80.85 | **79.73** |   **87.82**   | **91.87** |
+| RoFormerV2<sup>*</sup>-pytorch(本仓库代码) | **62.87** | 59.03 | **76.20** | 80.85 | 79.73 |   87.82   | **91.87** |
 | GAU-α | 61.41 | 57.76 | 74.17 | 81.82 | 75.86 | 79.93 | 85.67 |
 | GAU-α-pytorch（Adafactor） | 61.18 | 57.52 | 73.42 | 80.91 | 75.69 | 80.59 | 85.5 |
 | GAU-α-pytorch（AdamW wd0.01 warm_decay0.1） | 60.68 | 57.95 | 73.08 | 81.02 | 75.36 | 81.25 | 83.93 |
-
-
-
-
+| RoFormerV2<sup>*</sup>-large-pytorch(本仓库代码) | 61.75 | **59.21** | 76.14 | **82.35** | **81.73** | **91.45** | 91.5 |
 
 
 ### CLUE-1.0-test榜单分类任务结果，base版本。
@@ -72,19 +69,22 @@ pip install -U transformers
 |         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl |
 | :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: |
 | RoFormer-pytorch(本仓库代码) | 59.54 | 57.34 | 74.46 | 80.23 | 73.67 |   80.69   | 84.57 |
-| RoFormerV2<sup>*</sup>-pytorch(本仓库代码) | 63.15 | 58.24 | 75.42 | 80.59 | 74.17 |   83.79   | 83.73 |
-| GAU-α-pytorch（Adafactor） | 61.38 | 57.08 | 74.05 | 80.37 | 73.53 | 74.83 | 85.6 |
+| RoFormerV2<sup>*</sup>-pytorch(本仓库代码) | **63.15** | 58.24 | 75.42 | 80.59 | 74.17 |   83.79   | 83.73 |
+| GAU-α-pytorch（Adafactor） | 61.38 | 57.08 | 74.05 | 80.37 | 73.53 | 74.83 | **85.6** |
 | GAU-α-pytorch（AdamW wd0.01 warm_decay0.1） | 60.54 | 57.67 | 72.44 | 80.32 | 72.97 | 76.55 | 84.13 |
+| RoFormerV2-large<sup>*</sup>-pytorch(本仓库代码) | 61.85 | **59.13** | **76.38** | **80.97** | **76.23** | **85.86** | 84.33 |
 
 ### Tips:
 
 - 实验环境**RTX 3090**
 
-### leadborad截图
+### Leadborad截图
 <p align="center">
-    <img src="figure/clue-roformerv2-classification.jpg" width="100%" />
+    <img src="figure/clue-roformerv2-base-classification.jpg" width="100%" />
 </p>
-  
+<p align="center">
+    <img src="figure/clue-roformerv2-large-classification.jpg" width="100%" />
+</p>  
 
 ## Roformer-sim测试例子
 
