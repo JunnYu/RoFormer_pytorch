@@ -61,7 +61,8 @@ pip install -U transformers
 | GAU-α | 61.41 | 57.76 | 74.17 | 81.82 | 75.86 | 79.93 | 85.67 |
 | GAU-α-pytorch（Adafactor） | 61.18 | 57.52 | 73.42 | 80.91 | 75.69 | 80.59 | 85.5 |
 | GAU-α-pytorch（AdamW wd0.01 warm_decay0.1） | 60.68 | 57.95 | 73.08 | 81.02 | 75.36 | 81.25 | 83.93 |
-| RoFormerV2<sup>*</sup>-large-pytorch(本仓库代码) | 61.75 | **59.21** | 76.14 | **82.35** | **81.73** | **91.45** | 91.5 |
+| RoFormerV2<sup>*</sup>-large-pytorch(本仓库代码) | 61.75 | **59.21** | 76.14 | 82.35 | **81.73** | **91.45** | 91.5 |
+| Chinesebert-large-pytorch | 61.25 | 58.67 | 74.70 | **82.65** | 79.63 | 87.83 | 84.97 |
 
 
 ### CLUE-1.0-test榜单分类任务结果，base版本。
@@ -72,7 +73,8 @@ pip install -U transformers
 | RoFormerV2<sup>*</sup>-pytorch(本仓库代码) | **63.15** | 58.24 | 75.42 | 80.59 | 74.17 |   83.79   | 83.73 |
 | GAU-α-pytorch（Adafactor） | 61.38 | 57.08 | 74.05 | 80.37 | 73.53 | 74.83 | **85.6** |
 | GAU-α-pytorch（AdamW wd0.01 warm_decay0.1） | 60.54 | 57.67 | 72.44 | 80.32 | 72.97 | 76.55 | 84.13 |
-| RoFormerV2-large<sup>*</sup>-pytorch(本仓库代码) | 61.85 | **59.13** | **76.38** | **80.97** | **76.23** | **85.86** | 84.33 |
+| RoFormerV2-large<sup>*</sup>-pytorch(本仓库代码) | 61.85 | **59.13** | **76.38** | 80.97 | 76.23 | **85.86** | 84.33 |
+| Chinesebert-large-pytorch | 61.54 | 58.57 | 74.8 | **81.94** | **76.93** | 79.66 | 85.1 |
 
 ### Tips:
 
@@ -84,7 +86,11 @@ pip install -U transformers
 </p>
 <p align="center">
     <img src="figure/clue-roformerv2-large-classification.jpg" width="100%" />
-</p>  
+</p>
+<p align="center">
+    <img src="figure/clue-chinesebert-large-classification.jpg" width="100%" />
+</p>
+
 
 ## Roformer-sim测试例子
 
