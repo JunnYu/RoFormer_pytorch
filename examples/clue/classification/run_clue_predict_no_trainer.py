@@ -169,7 +169,7 @@ def predict():
                             : len(test_dataloader.dataset) - samples_seen
                         ]
                     else:
-                        samples_seen += references.shape[0]
+                        samples_seen += predictions.shape[0]
                 all_predictions.extend(int2str(predictions))
 
         with open(out_file, "w") as fw:
