@@ -52,7 +52,7 @@ pip install -U transformers
 
 
 ## 评测对比
-### CLUE-dev榜单分类任务结果，base版本。
+### CLUE-dev榜单分类任务结果，base+large版本。
 
 |         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl |
 | :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -84,7 +84,6 @@ pip install -U transformers
 - 其中RoFormerV2<sup>*</sup>表示的是未进行多任务学习的RoFormerV2模型，该模型苏神并未开源，感谢苏神的提醒。
 - 其中不带有pytorch后缀结果都是从[GAU-alpha](https://github.com/ZhuiyiTechnology/GAU-alpha)仓库复制过来的。
 - 其中带有pytorch后缀的结果都是自己训练得出的。
-
 - 苏神代码中拿了cls标签后直接进行了分类，而本仓库使用了如下的分类头，多了2个dropout，1个dense，1个relu激活。
 
 ```python
