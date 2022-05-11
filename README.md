@@ -87,7 +87,7 @@ pip install -U transformers
 
 - 苏神代码中拿了cls标签后直接进行了分类，而本仓库使用了如下的分类头，多了2个dropout，1个dense，1个relu激活。
 
-```
+```python
 class RoFormerClassificationHead(nn.Module):
     def __init__(self, config):
         super().__init__()
