@@ -2,6 +2,10 @@
 RoFormer模型和RoFormer-V2模型
 
 ## 更新
+- **2022/05/18**
+
+添加paddle版本[RoFormerV2](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/paddlenlp/transformers/roformerv2)在分类任务上的训练结果。
+
 - **2022/05/11** 
 
 感谢苏神提醒，添加了一个注释，其中RoFormerV2*表示未经多任务学习的RoFormerV2模型。
@@ -54,37 +58,40 @@ pip install -U transformers
 ## 评测对比
 ### CLUE-dev榜单分类任务结果，base+large版本。
 
-|         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl |
-| :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: |
-| BERT | 60.06 | 56.80 | 72.41 | 79.56 | 73.93 | 78.62 | 83.93 |
-| RoBERTa | 60.64 | 58.06 | 74.05 | 81.24 | 76.00 | 87.50 | 84.50 |
-| RoFormer | 60.91 | 57.54 | 73.52 | 80.92 | 76.07 | 86.84 | 84.63 |
-| RoFormerV2<sup>*</sup> | 60.87 | 56.54 | 72.75 | 80.34 | 75.36 | 80.92 | 84.67 |
-| GAU-α | 61.41 | 57.76 | 74.17 | 81.82 | 75.86 | 79.93 | 85.67 |
-| RoFormer-pytorch(本仓库代码) | 60.60 | 57.51 | 74.44 | 80.79 | 75.67 | 86.84 | 84.77 |
-| RoFormerV2-pytorch(本仓库代码) | **62.87** | 59.03 | **76.20** | 80.85 | 79.73 |   87.82   | **91.87** |
-| GAU-α-pytorch（Adafactor） | 61.18 | 57.52 | 73.42 | 80.91 | 75.69 | 80.59 | 85.5 |
-| GAU-α-pytorch（AdamW wd0.01 warmup0.1） | 60.68 | 57.95 | 73.08 | 81.02 | 75.36 | 81.25 | 83.93 |
-| RoFormerV2-large-pytorch(本仓库代码) | 61.75 | **59.21** | 76.14 | 82.35 | **81.73** | **91.45** | 91.5 |
-| Chinesebert-large-pytorch | 61.25 | 58.67 | 74.70 | **82.65** | 79.63 | 87.83 | 84.97 |
-
+|         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl | avg |
+| :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: | ----- |
+| BERT | 60.06 | 56.80 | 72.41 | 79.56 | 73.93 | 78.62 | 83.93 | 72.19 |
+| RoBERTa | 60.64 | 58.06 | 74.05 | 81.24 | 76.00 | 87.50 | 84.50 | 74.57 |
+| RoFormer | 60.91 | 57.54 | 73.52 | 80.92 | 76.07 | 86.84 | 84.63 | 74.35 |
+| RoFormerV2<sup>*</sup> | 60.87 | 56.54 | 72.75 | 80.34 | 75.36 | 80.92 | 84.67 | 73.06 |
+| GAU-α | 61.41 | 57.76 | 74.17 | 81.82 | 75.86 | 79.93 | 85.67 | 73.8 |
+| RoFormer-pytorch(本仓库代码) | 60.60 | 57.51 | 74.44 | 80.79 | 75.67 | 86.84 | 84.77 | 74.37 |
+| RoFormerV2-pytorch(本仓库代码) | 62.87 | 59.03 | 76.20 | 80.85 | 79.73 |   87.82   | **91.87** | 76.91 |
+| GAU-α-pytorch（Adafactor） | 61.18 | 57.52 | 73.42 | 80.91 | 75.69 | 80.59 | 85.5 | 73.54 |
+| GAU-α-pytorch（AdamW wd0.01 warmup0.1） | 60.68 | 57.95 | 73.08 | 81.02 | 75.36 | 81.25 | 83.93 | 73.32 |
+| RoFormerV2-large-pytorch(本仓库代码) | 61.75 | 59.21 | 76.14 | 82.35 | 81.73 | 91.45 | 91.5 | 77.73 |
+| Chinesebert-large-pytorch | 61.25 | 58.67 | 74.70 | 82.65 | 79.63 | 87.83 | 84.97 | 75.67 |
+| RoFormerV2-base-paddle |   63.76   |   59.53   |   77.06   |   81.58   |  81.56   |   87.83   |   86.73   | 76.87 |
+| RoFormerV2-large-paddle | **64.02** | **60.08** | **77.92** | **82.87** | **83.9** | **92.43** | 86.87 | **78.30** |
 
 ### CLUE-1.0-test榜单分类任务结果，base+large版本。
 
-|         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl |
-| :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: |
-| RoFormer-pytorch(本仓库代码) | 59.54 | 57.34 | 74.46 | 80.23 | 73.67 |   80.69   | 84.57 |
-| RoFormerV2-pytorch(本仓库代码) | **63.15** | 58.24 | 75.42 | 80.59 | 74.17 |   83.79   | 83.73 |
-| GAU-α-pytorch（Adafactor） | 61.38 | 57.08 | 74.05 | 80.37 | 73.53 | 74.83 | **85.6** |
-| GAU-α-pytorch（AdamW wd0.01 warmup0.1） | 60.54 | 57.67 | 72.44 | 80.32 | 72.97 | 76.55 | 84.13 |
-| RoFormerV2-large-pytorch(本仓库代码) | 61.85 | **59.13** | **76.38** | 80.97 | 76.23 | **85.86** | 84.33 |
-| Chinesebert-large-pytorch | 61.54 | 58.57 | 74.8 | **81.94** | **76.93** | 79.66 | 85.1 |
+|         | iflytek | tnews | afqmc | cmnli | ocnli | wsc | csl | avg |
+| :-----: | :-----: | :---: | :---: | :---: | :---: | :---: | :---: | ----- |
+| RoFormer-pytorch(本仓库代码) | 59.54 | 57.34 | 74.46 | 80.23 | 73.67 |   80.69   | 84.57 | 72.93 |
+| RoFormerV2-pytorch(本仓库代码) | 63.15 | 58.24 | 75.42 | 80.59 | 74.17 |   83.79   | 83.73 | 74.16 |
+| GAU-α-pytorch（Adafactor） | 61.38 | 57.08 | 74.05 | 80.37 | 73.53 | 74.83 | **85.6** | 72.41 |
+| GAU-α-pytorch（AdamW wd0.01 warmup0.1） | 60.54 | 57.67 | 72.44 | 80.32 | 72.97 | 76.55 | 84.13 | 72.09 |
+| RoFormerV2-large-pytorch(本仓库代码) | 61.85 | 59.13 | 76.38 | 80.97 | 76.23 | **85.86** | 84.33 | 74.96 |
+| Chinesebert-large-pytorch | 61.54 | 58.57 | 74.8 | 81.94 | **76.93** | 79.66 | 85.1 | 74.08 |
+| RoFormerV2-large-paddle | **64.23** | **59.99** | **76.85** | **81.97** |   76.57   | 84.48 | 83.37 | **75.35** |
 
 ### 注：
 - 其中RoFormerV2<sup>*</sup>表示的是未进行多任务学习的RoFormerV2模型，该模型苏神并未开源，感谢苏神的提醒。
 - 其中不带有pytorch后缀结果都是从[GAU-alpha](https://github.com/ZhuiyiTechnology/GAU-alpha)仓库复制过来的。
 - 其中带有pytorch后缀的结果都是自己训练得出的。
 - 苏神代码中拿了cls标签后直接进行了分类，而本仓库使用了如下的分类头，多了2个dropout，1个dense，1个relu激活。
+- paddle版本的代码进行了grid search！
 
 ```python
 class RoFormerClassificationHead(nn.Module):
@@ -120,7 +127,9 @@ class RoFormerClassificationHead(nn.Module):
 <p align="center">
     <img src="figure/clue-chinesebert-large-classification.jpg" width="100%" />
 </p>
-
+<p align="center">
+    <img src="figure/clue-roformerv2-large-classification-paddle.jpg" width="100%" />
+</p>
 
 ## Roformer-sim测试例子
 
